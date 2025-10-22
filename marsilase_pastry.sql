@@ -20,7 +20,7 @@ CREATE TABLE cakes (
     id INT PRIMARY KEY AUTO_INCREMENT,
     name VARCHAR(255) NOT NULL,
     description TEXT,
-    price DECIMAL(10,2) NOT NULL, -- Price for small size (0.5kg)
+    price DECIMAL(10,2) NOT NULL,
     color VARCHAR(255) DEFAULT '#8B4513',
     is_active BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -58,7 +58,7 @@ CREATE TABLE hot_drinks (
 
 -- Cake sizes with price multipliers
 CREATE TABLE cake_sizes (
-    id varchar(255) NOT NULL,
+    id varchar(255) NOT NULL PRIMARY KEY,
     name varchar(255) NOT NULL,
     priceModifier decimal(5,2) NOT NULL
 );
@@ -76,22 +76,21 @@ CREATE TABLE toppings (
     name VARCHAR(255) NOT NULL
 );
 
--- Orders
+-- Orders - SIMPLIFIED VERSION
 CREATE TABLE orders (
     id INT PRIMARY KEY AUTO_INCREMENT,
     order_number VARCHAR(255) UNIQUE NOT NULL,
-    customer_name VARCHAR(255) NOT NULL,
-    customer_phone VARCHAR(255) NOT NULL,
-    delivery_address TEXT NOT NULL,
+    customer_name VARCHAR(255) NOT NULL DEFAULT 'Customer',
+    customer_phone VARCHAR(255) NOT NULL DEFAULT '0000000000',
+    delivery_address TEXT NOT NULL DEFAULT 'Store Pickup',
     delivery_date DATE NOT NULL,
-    delivery_instructions TEXT,
     total_amount DECIMAL(10,2) NOT NULL,
     status ENUM('pending', 'delivered', 'cancelled') DEFAULT 'pending',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
--- Order items
+-- Order items - SIMPLIFIED VERSION
 CREATE TABLE order_items (
     id INT PRIMARY KEY AUTO_INCREMENT,
     order_id INT,
@@ -99,9 +98,7 @@ CREATE TABLE order_items (
     product_id INT NOT NULL,
     product_name VARCHAR(255) NOT NULL,
     flavor VARCHAR(255) NOT NULL,
-    size VARCHAR(255) NOT NULL,
-    toppings JSON,
-    special_notes TEXT,
+    size VARCHAR(255),
     quantity INT DEFAULT 1,
     unit_price DECIMAL(10,2) NOT NULL,
     total_price DECIMAL(10,2) NOT NULL,
@@ -114,9 +111,9 @@ INSERT INTO admins (username, password_hash, full_name, role) VALUES
 
 -- Cake sizes with multipliers
 INSERT INTO cake_sizes (id, name, priceModifier) VALUES
-('large', 'Large', 47.00),
-('medium', 'Medium', 31.00),
-('small', 'Small', 1.00);   -- 3x small price
+('small', 'Small (0.5kg)', 1.00),
+('medium', 'Medium (1kg)', 2.00),
+('large', 'Large (2kg)', 3.00);
 
 INSERT INTO flavors (name, type) VALUES 
 ('Vanilla', 'cake'), ('Chocolate', 'cake'), ('Strawberry', 'cake'), ('Red Velvet', 'cake'),

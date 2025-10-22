@@ -8,14 +8,9 @@ error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
 if ($_POST['action'] === 'submit_order') {
-    error_log("Order submission started");
     
-    // Validate required fields - use default values if not provided
-    $name = trim($_POST['name'] ?? 'Customer');
-    $phone = trim($_POST['phone'] ?? '0000000000');
-    $address = trim($_POST['address'] ?? 'Delivery Address');
-    $date = $_POST['date'] ?? date('Y-m-d');
-    $instructions = trim($_POST['instructions'] ?? '');
+    // Debug info
+    error_log("=== ORDER SUBMISSION STARTED ===");
     
     if (empty($_SESSION['cart'])) {
         echo json_encode(['success' => false, 'message' => 'Your cart is empty']);
@@ -23,8 +18,7 @@ if ($_POST['action'] === 'submit_order') {
     }
     
     // Start transaction
-    $conn->autocommit(FALSE);
-    $success = true;
+    $conn->begin_transaction();
     
     try {
         // Calculate total
@@ -36,20 +30,26 @@ if ($_POST['action'] === 'submit_order') {
         // Generate order number
         $order_number = 'ORD' . date('YmdHis') . rand(100, 999);
         
-        // Insert order
-        $stmt = $conn->prepare("INSERT INTO orders (order_number, customer_name, customer_phone, delivery_address, delivery_date, delivery_instructions, total_amount) VALUES (?, ?, ?, ?, ?, ?, ?)");
+        // Use provided values or defaults
+        $name = trim($_POST['name'] ?? 'Customer');
+        $phone = trim($_POST['phone'] ?? '0000000000');
+        $address = trim($_POST['address'] ?? 'Store Pickup');
+        $date = $_POST['date'] ?? date('Y-m-d');
+        $instructions = trim($_POST['instructions'] ?? '');
+        
+        // Insert order - FIXED: Removed delivery_instructions if column doesn't exist
+        $stmt = $conn->prepare("INSERT INTO orders (order_number, customer_name, customer_phone, delivery_address, delivery_date, total_amount) VALUES (?, ?, ?, ?, ?, ?)");
         
         if (!$stmt) {
             throw new Exception("Prepare failed for orders: " . $conn->error);
         }
         
-        $stmt->bind_param("ssssssd", 
+        $stmt->bind_param("sssssd", 
             $order_number,
             $name,
             $phone,
             $address,
             $date,
-            $instructions,
             $total
         );
         
@@ -60,49 +60,31 @@ if ($_POST['action'] === 'submit_order') {
         $order_id = $conn->insert_id;
         $stmt->close();
         
-        // Insert order items
-        $stmt = $conn->prepare("INSERT INTO order_items (order_id, product_type, product_id, product_name, flavor, size, toppings, special_notes, quantity, unit_price, total_price) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        // Insert order items - FIXED: Simplified to avoid JSON issues
+        $stmt = $conn->prepare("INSERT INTO order_items (order_id, product_type, product_id, product_name, flavor, size, quantity, unit_price, total_price) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
         
         if (!$stmt) {
             throw new Exception("Prepare failed for order items: " . $conn->error);
         }
         
         foreach ($_SESSION['cart'] as $index => $item) {
-            // Handle toppings data safely
-            $toppings_data = $item['toppings'] ?? '';
-            if (is_array($toppings_data)) {
-                $toppings_json = json_encode($toppings_data);
-            } else {
-                $toppings_json = $toppings_data;
-                // If it's a string but contains JSON, decode and re-encode to ensure it's valid
-                if (!empty($toppings_json) && $toppings_json[0] === '[') {
-                    $decoded = json_decode($toppings_json, true);
-                    if (json_last_error() === JSON_ERROR_NONE) {
-                        $toppings_json = json_encode($decoded);
-                    }
-                }
-            }
-            
-            // Ensure all required fields have values
-            $product_type = $item['product_type'] ?? '';
-            $product_id = $item['product_id'] ?? '';
-            $product_name = $item['product_name'] ?? '';
-            $flavor = $item['flavor'] ?? '';
+            // Simplified - skip toppings and special_notes for now
+            $product_type = $item['product_type'] ?? 'cake';
+            $product_id = $item['product_id'] ?? '0';
+            $product_name = $item['product_name'] ?? 'Unknown Product';
+            $flavor = $item['flavor'] ?? 'Default';
             $size = $item['size'] ?? '';
-            $special_notes = $item['special_notes'] ?? '';
             $quantity = intval($item['quantity'] ?? 1);
             $unit_price = floatval($item['unit_price'] ?? 0);
             $total_price = floatval($item['total_price'] ?? 0);
             
-            $stmt->bind_param("isssssssidd",
+            $stmt->bind_param("issssiidd",
                 $order_id,
                 $product_type,
                 $product_id,
                 $product_name,
                 $flavor,
                 $size,
-                $toppings_json,
-                $special_notes,
                 $quantity,
                 $unit_price,
                 $total_price
@@ -116,9 +98,7 @@ if ($_POST['action'] === 'submit_order') {
         $stmt->close();
         
         // Commit transaction
-        if (!$conn->commit()) {
-            throw new Exception("Commit failed: " . $conn->error);
-        }
+        $conn->commit();
         
         // Clear cart
         $_SESSION['cart'] = [];
@@ -132,16 +112,19 @@ if ($_POST['action'] === 'submit_order') {
         
     } catch (Exception $e) {
         $conn->rollback();
-        error_log("Order submission error: " . $e->getMessage());
+        error_log("ORDER SUBMISSION ERROR: " . $e->getMessage());
         echo json_encode([
             'success' => false, 
-            'message' => 'There was an error submitting your order. Please try again.'
+            'message' => 'There was an error submitting your order. Please try again. Error: ' . $e->getMessage()
         ]);
     }
     
-    // Restore autocommit mode
-    $conn->autocommit(TRUE);
 } else {
     echo json_encode(['success' => false, 'message' => 'Invalid action']);
+}
+
+// Close connection
+if (isset($conn)) {
+    $conn->close();
 }
 ?>

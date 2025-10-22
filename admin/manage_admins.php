@@ -94,39 +94,97 @@ if ($result) {
     <title>Manage Admins - Marsilase Pastry</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
             --primary: #8B4513;
+            --primary-dark: #654321;
             --secondary: #D4A574;
             --light: #FFF8F0;
             --dark: #5D4037;
+            --text: #2D3748;
+            --text-light: #718096;
+            --success: #48BB78;
+            --danger: #F56565;
+            --border: #E2E8F0;
+            --shadow: 0 4px 12px rgba(0,0,0,0.05);
+            --radius: 12px;
         }
-        
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            min-height: 100vh;
+        }
+
         .admin-header {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--dark) 100%);
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            box-shadow: var(--shadow);
         }
-        
+
         .card {
             border: none;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            margin-bottom: 1.5rem;
         }
-        
+
+        .card-header {
+            background: white;
+            border-bottom: 1px solid var(--border);
+            padding: 1.25rem 1.5rem;
+            font-weight: 600;
+            color: var(--primary);
+        }
+
         .table th {
-            background-color: var(--primary);
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
             color: white;
             border: none;
             font-weight: 600;
+            padding: 1rem 1.5rem;
         }
-        
+
         .form-control:focus {
-            border-color: var(--secondary);
-            box-shadow: 0 0 0 0.2rem rgba(212, 165, 116, 0.25);
+            border-color: var(--primary);
+            box-shadow: 0 0 0 0.2rem rgba(139, 69, 19, 0.1);
         }
-        
+
         .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            border: none;
+            font-weight: 500;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(139, 69, 19, 0.3);
+        }
+
+        .form-check-input:checked {
             background-color: var(--primary);
             border-color: var(--primary);
+        }
+
+        .badge-super-admin {
+            background: linear-gradient(135deg, #E53E3E 0%, #C53030 100%);
+            color: white;
+        }
+
+        .badge-admin {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+        }
+
+        .badge-moderator {
+            background: linear-gradient(135deg, #4299E1 0%, #3182CE 100%);
+            color: white;
+        }
+
+        .alert {
+            border: none;
+            border-radius: var(--radius);
+            padding: 1rem 1.25rem;
         }
     </style>
 </head>
@@ -152,14 +210,14 @@ if ($result) {
         
         <?php if ($message): ?>
         <div class="alert alert-success d-flex align-items-center">
-            <i class="bi bi-check-circle me-2"></i>
+            <i class="bi bi-check-circle-fill me-2 fs-5"></i>
             <?= htmlspecialchars($message) ?>
         </div>
         <?php endif; ?>
         
         <?php if ($error): ?>
         <div class="alert alert-danger d-flex align-items-center">
-            <i class="bi bi-exclamation-triangle me-2"></i>
+            <i class="bi bi-exclamation-triangle-fill me-2 fs-5"></i>
             <?= htmlspecialchars($error) ?>
         </div>
         <?php endif; ?>
@@ -168,7 +226,7 @@ if ($result) {
             <!-- Create Admin Form -->
             <div class="col-lg-4">
                 <div class="card h-100">
-                    <div class="card-header bg-primary text-white">
+                    <div class="card-header">
                         <h5 class="card-title mb-0">
                             <i class="bi bi-person-plus me-2"></i>Create New Admin
                         </h5>
@@ -204,7 +262,7 @@ if ($result) {
                                 </select>
                             </div>
                             
-                            <button type="submit" class="btn btn-primary w-100 fw-bold">
+                            <button type="submit" class="btn btn-primary w-100 fw-bold py-2">
                                 <i class="bi bi-person-plus me-2"></i>Create Admin Account
                             </button>
                         </form>
@@ -215,7 +273,7 @@ if ($result) {
             <!-- Admins List -->
             <div class="col-lg-8">
                 <div class="card">
-                    <div class="card-header bg-primary text-white">
+                    <div class="card-header">
                         <h5 class="card-title mb-0">
                             <i class="bi bi-people me-2"></i>Administrators List
                         </h5>
@@ -238,11 +296,11 @@ if ($result) {
                                     <tr>
                                         <td class="fw-semibold"><?= htmlspecialchars($admin['full_name']) ?></td>
                                         <td>
-                                            <code><?= htmlspecialchars($admin['username']) ?></code>
+                                            <code class="text-primary"><?= htmlspecialchars($admin['username']) ?></code>
                                         </td>
                                         <td>
-                                            <span class="badge bg-<?= $admin['role'] === 'super_admin' ? 'danger' : 'primary' ?>">
-                                                <i class="bi bi-<?= $admin['role'] === 'super_admin' ? 'shield-shaded' : 'person' ?> me-1"></i>
+                                            <span class="badge badge-<?= str_replace('_', '-', $admin['role']) ?>">
+                                                <i class="bi bi-<?= $admin['role'] === 'super_admin' ? 'shield-shaded' : ($admin['role'] === 'admin' ? 'person-gear' : 'person') ?> me-1"></i>
                                                 <?= ucfirst(str_replace('_', ' ', $admin['role'])) ?>
                                             </span>
                                         </td>
