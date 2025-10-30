@@ -1,263 +1,191 @@
-<div class="container-fluid px-4">
-    <!-- Hero Section -->
-    <div class="hero-section fade-in-up">
-        <div class="hero-content text-center">
-            <h1 class="hero-title">Artisanal Pastries & Desserts</h1>
-            <p class="hero-subtitle">Handcrafted with passion, delivered with perfection. Experience the finest cakes, ice creams, and beverages in town.</p>
-            <div class="d-flex flex-column flex-sm-row justify-content-center gap-3">
-                <?php 
-                $cart_count = 0;
-                if (isset($_SESSION['cart'])) {
-                    foreach ($_SESSION['cart'] as $item) {
-                        $cart_count += $item['quantity'] ?? 1;
-                    }
-                }
-                ?>
-                <a href="?page=review" class="btn btn-light btn-lg fw-bold px-4 py-3">
-                    <i class="bi bi-cart3 me-2"></i>View Cart
-                    <?php if ($cart_count > 0): ?>
-                        <span class="badge bg-primary ms-2"><?= $cart_count ?> items</span>
-                    <?php endif; ?>
-                </a>
-                <a href="#cakes-section" class="btn btn-outline-light btn-lg px-4 py-3">
-                    <i class="bi bi-arrow-down me-2"></i>Explore Menu
-                </a>
+<section id="hero" class="hero-section">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <h1 class="hero-title">Marsilase Pastry</h1>
+                <p class="hero-subtitle">Premium handcrafted cakes made with love and the finest ingredients. Experience elegance in every bite.</p>
+                <div class="d-flex flex-wrap gap-3">
+                    <a href="#menu" class="btn btn-primary btn-lg">
+                        <i class="bi bi-cake2 me-2"></i>Order Now
+                    </a>
+                    <a href="#about" class="btn btn-outline-primary btn-lg">
+                        <i class="bi bi-info-circle me-2"></i>Learn More
+                    </a>
+                </div>
+            </div>
+            <div class="col-lg-6 text-center">
+                <div class="hero-visual">
+                    <i class="bi bi-cake2 display-1 text-gradient" style="font-size: 8rem;"></i>
+                </div>
             </div>
         </div>
     </div>
+</section>
 
-    <!-- Features Section -->
-    <div class="row g-4 mb-5 fade-in-up">
-        <div class="col-md-4">
-            <div class="text-center p-4">
-                <div class="bg-primary rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
-                    <i class="bi bi-star-fill text-white fs-4"></i>
-                </div>
-                <h5 class="fw-bold text-primary">Premium Quality</h5>
-                <p class="text-muted">Only the finest ingredients selected for exceptional taste and quality.</p>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="text-center p-4">
-                <div class="bg-primary rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
-                    <i class="bi bi-clock-fill text-white fs-4"></i>
-                </div>
-                <h5 class="fw-bold text-primary">Fresh Daily</h5>
-                <p class="text-muted">All our products are made fresh daily to ensure maximum freshness.</p>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="text-center p-4">
-                <div class="bg-primary rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
-                    <i class="bi bi-truck text-white fs-4"></i>
-                </div>
-                <h5 class="fw-bold text-primary">Fast Delivery</h5>
-                <p class="text-muted">Quick and reliable delivery to satisfy your cravings in no time.</p>
-            </div>
-        </div>
-    </div>
-
-    <!-- Cakes Section -->
-    <section id="cakes-section" class="fade-in-up">
-        <h2 class="section-title">
-            <i class="bi bi-cake2 me-3"></i>Our Signature Cakes
-        </h2>
-        <p class="section-subtitle">Celebrate every moment with our handcrafted cakes, baked to perfection and decorated with love.</p>
-
+<!-- Menu Section -->
+<section id="menu" class="menu-section py-5">
+    <div class="container">
+        <h2 class="section-title">Our Premium Cakes</h2>
+        <p class="section-subtitle">Handcrafted with love and the finest ingredients</p>
+        
+        <!-- Initial Cakes Display (First 3 cakes only) -->
         <div class="product-grid">
-            <?php if (!empty($cakes)): ?>
-                <?php foreach ($cakes as $cake): ?>
-                <div class="product-card">
-                    <div class="product-image" style="background: <?= $cake['color'] ?? '#8B4513' ?>">
+            <?php 
+            $cake_count = 0;
+            foreach ($cakes as $cake): 
+                $cake_count++;
+                if ($cake_count > 3) break; // Show only first 3 cakes initially
+            ?>
+            <div class="product-card fade-in-up">
+                <div class="product-image" style="background: <?= $cake['color'] ?>;">
+                    <?php if (!empty($cake['image_url'])): ?>
+                        <img src="<?= $cake['image_url'] ?>" alt="<?= htmlspecialchars($cake['name']) ?>">
+                    <?php else: ?>
                         <i class="bi bi-cake2"></i>
-                    </div>
-                    <div class="product-content">
-                        <h3 class="product-title"><?= htmlspecialchars($cake['name']) ?></h3>
-                        <p class="product-description"><?= htmlspecialchars($cake['description']) ?></p>
-                        <div class="product-price">Birr <?= number_format($cake['price'], 2) ?></div>
-                        <button type="button" class="btn btn-primary w-100" 
-                                onclick="selectProduct('cake', '<?= $cake['id'] ?>')">
-                            <i class="bi bi-magic me-2"></i>Customize Cake
-                        </button>
-                    </div>
+                    <?php endif; ?>
                 </div>
-                <?php endforeach; ?>
-            <?php else: ?>
-                <div class="col-12 text-center py-5">
-                    <div class="card border-0 shadow-sm">
-                        <div class="card-body py-5">
-                            <i class="bi bi-cake display-1 text-muted mb-3"></i>
-                            <h4 class="text-muted">Cakes Coming Soon</h4>
-                            <p class="text-muted">We're preparing something sweet for you!</p>
-                        </div>
-                    </div>
+                <div class="product-content">
+                    <h3 class="product-title"><?= htmlspecialchars($cake['name']) ?></h3>
+                    <p class="product-description"><?= htmlspecialchars($cake['description']) ?></p>
+                    <div class="product-price">Birr <?= number_format($cake['price'], 2) ?></div>
+                    <a href="?page=customize-cake&cake_id=<?= $cake['id'] ?>" class="btn btn-primary w-100">
+                        <i class="bi bi-gear me-2"></i>Add to Cart
+                    </a>
                 </div>
-            <?php endif; ?>
+            </div>
+            <?php endforeach; ?>
         </div>
-    </section>
 
-    <!-- Ice Creams Section -->
-    <section id="icecreams-section" class="fade-in-up mt-5">
-        <h2 class="section-title">
-            <i class="bi bi-ice-cream me-3"></i>Creamy Delights
-        </h2>
-        <p class="section-subtitle">Indulge in our premium ice creams, crafted with real ingredients and endless flavor possibilities.</p>
-
-        <div class="product-grid">
-            <?php if (!empty($ice_creams)): ?>
-                <?php foreach ($ice_creams as $ice_cream): ?>
-                <div class="product-card">
-                    <div class="product-image" style="background: <?= $ice_cream['color'] ?? '#D4A574' ?>">
-                        <i class="bi bi-ice-cream"></i>
-                    </div>
-                    <div class="product-content">
-                        <h3 class="product-title"><?= htmlspecialchars($ice_cream['name']) ?></h3>
-                        <p class="product-description"><?= htmlspecialchars($ice_cream['description']) ?></p>
-                        <div class="product-price">Birr <?= number_format($ice_cream['price'], 2) ?></div>
-                        <button type="button" class="btn btn-primary w-100" 
-                                onclick="selectProduct('ice_cream', '<?= $ice_cream['id'] ?>')">
-                            <i class="bi bi-magic me-2"></i>Customize Ice Cream
-                        </button>
-                    </div>
-                </div>
-                <?php endforeach; ?>
-            <?php else: ?>
-                <div class="col-12 text-center py-5">
-                    <div class="card border-0 shadow-sm">
-                        <div class="card-body py-5">
-                            <i class="bi bi-ice-cream display-1 text-muted mb-3"></i>
-                            <h4 class="text-muted">Ice Creams Coming Soon</h4>
-                            <p class="text-muted">Chilling our recipes for the perfect scoop!</p>
-                        </div>
-                    </div>
-                </div>
-            <?php endif; ?>
+        <!-- View All Menu Button -->
+        <?php if (count($cakes) > 3): ?>
+        <div class="text-center mt-5">
+            <a href="?page=full-menu" class="btn btn-outline-primary btn-lg px-5 py-3" id="view-all-btn">
+                <i class="bi bi-grid-3x3-gap me-2"></i>View All Menu
+            </a>
         </div>
-    </section>
-
-    <!-- Soft Drinks Section -->
-    <section id="softdrinks-section" class="fade-in-up mt-5">
-        <h2 class="section-title">
-            <i class="bi bi-cup-straw me-3"></i>Refreshing Beverages
-        </h2>
-        <p class="section-subtitle">Quench your thirst with our selection of cool, refreshing soft drinks and beverages.</p>
-
-        <div class="product-grid">
-            <?php if (!empty($soft_drinks)): ?>
-                <?php foreach ($soft_drinks as $drink): ?>
-                <div class="product-card">
-                    <div class="product-image" style="background: <?= $drink['color'] ?? '#FF6B6B' ?>">
-                        <i class="bi bi-cup-straw"></i>
-                    </div>
-                    <div class="product-content">
-                        <h3 class="product-title"><?= htmlspecialchars($drink['name']) ?></h3>
-                        <p class="product-description"><?= htmlspecialchars($drink['description']) ?></p>
-                        <div class="product-price">Birr <?= number_format($drink['price'], 2) ?></div>
-                        <button type="button" class="btn btn-primary w-100" 
-                                onclick="selectProduct('soft_drink', '<?= $drink['id'] ?>')">
-                            <i class="bi bi-magic me-2"></i>Customize Drink
-                        </button>
-                    </div>
-                </div>
-                <?php endforeach; ?>
-            <?php else: ?>
-                <div class="col-12 text-center py-5">
-                    <div class="card border-0 shadow-sm">
-                        <div class="card-body py-5">
-                            <i class="bi bi-cup-straw display-1 text-muted mb-3"></i>
-                            <h4 class="text-muted">Drinks Coming Soon</h4>
-                            <p class="text-muted">Mixing up some refreshing surprises!</p>
-                        </div>
-                    </div>
-                </div>
-            <?php endif; ?>
-        </div>
-    </section>
-
-    <!-- Hot Drinks Section -->
-    <section id="hotdrinks-section" class="fade-in-up mt-5">
-        <h2 class="section-title">
-            <i class="bi bi-cup-hot me-3"></i>Warm Comforts
-        </h2>
-        <p class="section-subtitle">Warm your soul with our carefully brewed hot beverages, perfect for any time of day.</p>
-
-        <div class="product-grid">
-            <?php if (!empty($hot_drinks)): ?>
-                <?php foreach ($hot_drinks as $drink): ?>
-                <div class="product-card">
-                    <div class="product-image" style="background: <?= $drink['color'] ?? '#8B4513' ?>">
-                        <i class="bi bi-cup-hot"></i>
-                    </div>
-                    <div class="product-content">
-                        <h3 class="product-title"><?= htmlspecialchars($drink['name']) ?></h3>
-                        <p class="product-description"><?= htmlspecialchars($drink['description']) ?></p>
-                        <div class="product-price">Birr <?= number_format($drink['price'], 2) ?></div>
-                        <button type="button" class="btn btn-primary w-100" 
-                                onclick="selectProduct('hot_drink', '<?= $drink['id'] ?>')">
-                            <i class="bi bi-magic me-2"></i>Customize Drink
-                        </button>
-                    </div>
-                </div>
-                <?php endforeach; ?>
-            <?php else: ?>
-                <div class="col-12 text-center py-5">
-                    <div class="card border-0 shadow-sm">
-                        <div class="card-body py-5">
-                            <i class="bi bi-cup-hot display-1 text-muted mb-3"></i>
-                            <h4 class="text-muted">Hot Drinks Coming Soon</h4>
-                            <p class="text-muted">Brewing something special for you!</p>
-                        </div>
-                    </div>
-                </div>
-            <?php endif; ?>
-        </div>
-    </section>
-
-    <!-- CTA Section -->
-    <div class="text-center my-5 py-5 fade-in-up">
-        <h3 class="text-gradient fw-bold mb-3">Ready to Satisfy Your Cravings?</h3>
-        <p class="text-muted mb-4">Create your perfect order with our easy customization options.</p>
-        <a href="#cakes-section" class="btn btn-primary btn-lg px-5 py-3">
-            <i class="bi bi-arrow-up-circle me-2"></i>Start Ordering
-        </a>
+        <?php endif; ?>
     </div>
-</div>
+</section>
 
-<script>
-function selectProduct(type, id) {
-    switch(type) {
-        case 'cake':
-            window.location.href = `?page=customize-cake&cake_id=${id}`;
-            break;
-        case 'ice_cream':
-            window.location.href = `?page=customize-icecream&icecream_id=${id}`;
-            break;
-        case 'soft_drink':
-            window.location.href = `?page=customize-softdrink&drink_id=${id}`;
-            break;
-        case 'hot_drink':
-            window.location.href = `?page=customize-hotdrink&drink_id=${id}`;
-            break;
+<!-- About Section -->
+<section id="about" class="about-section py-5 bg-light">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6 mb-4 mb-lg-0">
+                <h2 class="section-title">About Marsilase Pastry</h2>
+                <p class="section-subtitle">Elegance in Every Bite</p>
+                <p class="text-muted">Founded in 2010, Marsilase Pastry has been dedicated to crafting premium handcrafted cakes that bring joy to every celebration. Our passion for baking and commitment to quality ingredients ensure that each cake is a masterpiece of flavor and design.</p>
+                <p class="text-muted">From classic flavors to innovative creations, we tailor each cake to your unique vision. Experience the art of fine baking with Marsilase Pastry.</p>
+            </div>
+            <div class="col-lg-6 text-center">
+                <div class="about-visual">
+                    <i class="bi bi-shop-window display-1 text-gradient" style="font-size: 8rem;"></i>
+                </div>
+            </div>
+        </div>  
+    </div>
+</section>
+
+<!-- Features Section -->
+<section id="features" class="features-section py-5 bg-light">
+    <div class="container">
+        <h2 class="section-title">Why Choose Marsilase Pastry?</h2>
+        <p class="section-subtitle">Excellence in every detail</p>
+        
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="bi bi-star"></i>
+                    </div>
+                    <h4>Premium Quality</h4>
+                    <p class="text-muted">We use only the finest ingredients to create exceptional cakes that delight your senses.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="bi bi-truck"></i>
+                    </div>
+                    <h4>Free Delivery</h4>
+                    <p class="text-muted">Enjoy complimentary delivery for orders over Birr 500. Fresh to your doorstep.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="bi bi-shield-check"></i>
+                    </div>
+                    <h4>Quality Guarantee</h4>
+                    <p class="text-muted">100% satisfaction guaranteed. We stand behind the quality of every cake we create.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Testimonials Section -->
+<?php include 'testimonials.php'; ?>
+
+<!-- Contact Section -->
+<section id="contact" class="contact-section py-5">
+    <div class="container">
+        <h2 class="section-title">Get In Touch</h2>
+        <p class="section-subtitle">We'd love to hear from you</p>
+        
+        <div class="row">
+            <div class="col-lg-8 mx-auto">
+                <div class="card border-0 shadow-card-lg">
+                    <div class="card-body p-5">
+                        <div class="row text-center">
+                            <div class="col-md-4 mb-4">
+                                <div class="feature-icon mx-auto" style="width: 60px; height: 60px;">
+                                    <i class="bi bi-telephone"></i>
+                                </div>
+                                <h5>Call Us</h5>
+                                <p class="text-muted">+251-967-318-674</p>
+                            </div>
+                            <div class="col-md-4 mb-4">
+                                <div class="feature-icon mx-auto" style="width: 60px; height: 60px;">
+                                    <i class="bi bi-envelope"></i>
+                                </div>
+                                <h5>Email Us</h5>
+                                <p class="text-muted">marsilasepastry@gmail.com</p>
+                            </div>
+                            <div class="col-md-4 mb-4">
+                                <div class="feature-icon mx-auto" style="width: 60px; height: 60px;">
+                                    <i class="bi bi-geo-alt"></i>
+                                </div>
+                                <h5>Visit Us</h5>
+                                <p class="text-muted">Narzät, Ethiopia</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+    /* Enhanced button styling */
+    #view-all-btn {
+        transition: all 0.4s ease;
+        position: relative;
+        overflow: hidden;
+        border: 2px solid var(--primary);
+        font-weight: 600;
+        font-size: 1.1rem;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
     }
-}
-
-// Add scroll animations
-document.addEventListener('DOMContentLoaded', function() {
-    const observerOptions = {
-        threshold: 0.1,
-        rootMargin: '0px 0px -50px 0px'
-    };
-
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                entry.target.classList.add('fade-in-up');
-            }
-        });
-    }, observerOptions);
-
-    document.querySelectorAll('section').forEach(section => {
-        observer.observe(section);
-    });
-});
-</script>
+    
+    #view-all-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 25px rgba(212, 175, 55, 0.3);
+        background: var(--primary);
+        color: var(--dark);
+    }
+</style>

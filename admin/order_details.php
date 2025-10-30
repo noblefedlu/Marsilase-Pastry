@@ -38,6 +38,31 @@ $conn->close();
         </span>
     </div>
     
+    <!-- Customer Information Section -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-primary text-white">
+            <h6 class="mb-0 fw-semibold">
+                <i class="bi bi-person me-2"></i>Customer Information
+            </h6>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <p><strong>Name:</strong> <?= htmlspecialchars($order['customer_name']) ?></p>
+                    <p><strong>Phone:</strong> <?= $order['customer_phone'] ?></p>
+                    <p><strong>Email:</strong> <?= $order['customer_email'] ?></p>
+                </div>
+                <div class="col-md-6">
+                    <p><strong>Delivery Address:</strong><br><?= nl2br(htmlspecialchars($order['delivery_address'])) ?></p>
+                    <p><strong>Delivery Date:</strong> <?= $order['delivery_date'] ?></p>
+                    <?php if (!empty($order['special_instructions'])): ?>
+                    <p><strong>Special Instructions:</strong><br><?= nl2br(htmlspecialchars($order['special_instructions'])) ?></p>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </div>
+    </div>
+    
     <div class="card border-0 shadow-sm mt-4">
         <div class="card-header bg-primary text-white">
             <h6 class="mb-0 fw-semibold">

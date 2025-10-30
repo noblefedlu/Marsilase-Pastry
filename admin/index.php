@@ -269,6 +269,8 @@ $total_revenue = $conn->query("SELECT SUM(total_amount) as revenue FROM orders W
                             <tr>
                                 <th>Order #</th>
                                 <th>Customer</th>
+                                <th>Contact</th>
+                                <th>Delivery Info</th>
                                 <th>Date</th>
                                 <th>Total</th>
                                 <th>Status</th>
@@ -281,7 +283,18 @@ $total_revenue = $conn->query("SELECT SUM(total_amount) as revenue FROM orders W
                                 <td class="fw-semibold">#<?= $order['order_number'] ?></td>
                                 <td>
                                     <div class="fw-medium"><?= htmlspecialchars($order['customer_name']) ?></div>
-                                    <small class="text-muted"><?= $order['customer_phone'] ?></small>
+                                    <small class="text-muted"><?= $order['customer_email'] ?></small>
+                                </td>
+                                <td>
+                                    <div class="small"><?= $order['customer_phone'] ?></div>
+                                </td>
+                                <td>
+                                    <div class="small">
+                                        <strong>Address:</strong> <?= substr($order['delivery_address'], 0, 30) ?>...
+                                    </div>
+                                    <div class="small">
+                                        <strong>Date:</strong> <?= $order['delivery_date'] ?>
+                                    </div>
                                 </td>
                                 <td><?= date('M j, Y', strtotime($order['created_at'])) ?></td>
                                 <td class="fw-bold">Birr <?= number_format($order['total_amount'], 2) ?></td>
