@@ -1,165 +1,36 @@
-<section id="contact" class="contact-section">
+
+<section id="contact" class="py-5 glass-section">
     <div class="container">
-        <div class="contact-grid">
-            <div class="contact-info">
-                <h2>Get In Touch</h2>
-                <p>We'd love to hear from you. Reach out for orders, inquiries, or just to say hello!</p>
-                
-                <div class="contact-details">
-                    <div class="contact-item">
-                        <i class="bi bi-geo-alt"></i>
-                        <div>
-                            <strong>Address</strong>
-                            <p>Addis Ababa, Ethiopia</p>
+        <h2 class="section-title">Get In Touch</h2>
+        <p class="section-subtitle">We'd love to hear from you</p>
+
+        <div class="row">
+            <div class="col-lg-8 mx-auto">
+                <div class="contact-card glass-card rounded-4 p-5 hover-glow">
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <div class="contact-info text-center p-4">
+                                <i class="bi bi-geo-alt-fill fs-1 text-primary mb-3"></i>
+                                <h5>Visit Our Store</h5>
+                                <p class="text-medium">Bole Road, Addis Ababa</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="contact-info text-center p-4">
+                                <i class="bi bi-telephone-fill fs-1 text-primary mb-3"></i>
+                                <h5>Call Us</h5>
+                                <p class="text-medium">+251 911 234 567</p>
+                            </div>
                         </div>
                     </div>
-                    <div class="contact-item">
-                        <i class="bi bi-telephone"></i>
-                        <div>
-                            <strong>Phone</strong>
-                            <p>+251-XXX-XXXX</p>
-                        </div>
-                    </div>
-                    <div class="contact-item">
-                        <i class="bi bi-envelope"></i>
-                        <div>
-                            <strong>Email</strong>
-                            <p>marsilasepastries@gmail.com</p>
-                        </div>
-                    </div>
-                    <div class="contact-item">
-                        <i class="bi bi-clock"></i>
-                        <div>
-                            <strong>Hours</strong>
-                            <p>Mon-Sun: 7:00 AM - 9:00 PM</p>
-                        </div>
+                    <div class="text-center mt-4">
+                        <p class="text-medium mb-4">Open daily from 8:00 AM to 8:00 PM</p>
+                        <a href="tel:+251911234567" class="btn btn-primary hover-glow">
+                            <i class="bi bi-telephone me-2"></i>Call Now
+                        </a>
                     </div>
                 </div>
-            </div>
-            
-            <div class="contact-form">
-                <form id="contactForm">
-                    <div class="form-group">
-                        <input type="text" placeholder="Your Name" required>
-                    </div>
-                    <div class="form-group">
-                        <input type="email" placeholder="Your Email" required>
-                    </div>
-                    <div class="form-group">
-                        <textarea placeholder="Your Message" rows="5" required></textarea>
-                    </div>
-                    <button type="submit" class="btn btn-primary">
-                        Send Message
-                    </button>
-                </form>
             </div>
         </div>
     </div>
 </section>
-
-<style>
-.contact-section {
-    padding: 100px 0;
-    background: var(--white);
-}
-
-.contact-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 4rem;
-}
-
-.contact-info h2 {
-    font-size: 2.5rem;
-    margin-bottom: 1rem;
-    font-family: 'Playfair Display', serif;
-    color: var(--dark);
-}
-
-.contact-info > p {
-    font-size: 1.1rem;
-    color: var(--text-light);
-    margin-bottom: 2rem;
-}
-
-.contact-details {
-    space-y: 1.5rem;
-}
-
-.contact-item {
-    display: flex;
-    align-items: flex-start;
-    gap: 1rem;
-    margin-bottom: 1.5rem;
-}
-
-.contact-item i {
-    color: var(--primary);
-    font-size: 1.2rem;
-    margin-top: 0.2rem;
-}
-
-.contact-item strong {
-    display: block;
-    color: var(--dark);
-    margin-bottom: 0.2rem;
-}
-
-.contact-item p {
-    color: var(--text-light);
-    margin: 0;
-}
-
-.contact-form {
-    background: var(--gray);
-    padding: 2.5rem;
-    border-radius: var(--radius);
-}
-
-.form-group {
-    margin-bottom: 1.5rem;
-}
-
-.form-group input,
-.form-group textarea {
-    width: 100%;
-    padding: 1rem;
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    font-size: 1rem;
-    transition: var(--transition);
-    background: var(--white);
-}
-
-.form-group input:focus,
-.form-group textarea:focus {
-    outline: none;
-    border-color: var(--primary);
-    box-shadow: 0 0 0 3px rgba(139, 69, 19, 0.1);
-}
-
-@media (max-width: 768px) {
-    .contact-grid {
-        grid-template-columns: 1fr;
-        gap: 2rem;
-    }
-    
-    .contact-form {
-        padding: 2rem;
-    }
-}
-</style>
-
-<script>
-// Contact form handling
-document.getElementById('contactForm')?.addEventListener('submit', function(e) {
-    e.preventDefault();
-    showLoader();
-    
-    setTimeout(() => {
-        hideLoader();
-        showToast('Thank you for your message! We will get back to you soon.');
-        this.reset();
-    }, 1500);
-});
-</script>

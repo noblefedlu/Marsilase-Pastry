@@ -1,109 +1,35 @@
-<section id="about" class="about-section">
+
+<section id="about" class="py-5 glass-section">
     <div class="container">
-        <div class="about-grid">
-            <div class="about-content">
-                <h2>Our Story</h2>
-                <p class="lead">For over a decade, Marsilase Pastries has been creating moments of joy through our artisanal baked goods.</p>
-                <p>Founded in 2010, we combine traditional techniques with innovative flavors to bring you the finest pastries in Addis Ababa. Every product is crafted with love, attention to detail, and the highest quality ingredients.</p>
-                <div class="about-stats">
-                    <div class="stat">
-                        <span class="stat-number">12+</span>
-                        <span class="stat-label">Years Experience</span>
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <h2 class="section-title text-start">Our Story</h2>
+                <p class="lead text-medium mb-4">
+                    For over a decade, Marsilase Pastries has been crafting unforgettable moments through our exquisite cakes and desserts.
+                </p>
+                <p class="text-medium mb-4">
+                    Our master bakers combine traditional techniques with innovative flavors to create cakes that not only look stunning but taste extraordinary. Every ingredient is carefully selected, and every cake is baked with passion.
+                </p>
+                <div class="feature-list">
+                    <div class="d-flex align-items-center mb-3">
+                        <i class="bi bi-check-circle-fill text-success me-3 fs-5"></i>
+                        <span class="text-medium">100% Natural Ingredients</span>
                     </div>
-                    <div class="stat">
-                        <span class="stat-number">50K+</span>
-                        <span class="stat-label">Happy Customers</span>
+                    <div class="d-flex align-items-center mb-3">
+                        <i class="bi bi-check-circle-fill text-success me-3 fs-5"></i>
+                        <span class="text-medium">Handcrafted Daily</span>
                     </div>
-                    <div class="stat">
-                        <span class="stat-number">100+</span>
-                        <span class="stat-label">Products</span>
+                    <div class="d-flex align-items-center mb-3">
+                        <i class="bi bi-check-circle-fill text-success me-3 fs-5"></i>
+                        <span class="text-medium">Custom Designs Available</span>
                     </div>
                 </div>
             </div>
-            <div class="about-image">
-                <div class="image-frame">
-                    <i class="bi bi-shop-window"></i>
+            <div class="col-lg-6">
+                <div class="about-image rounded-4 shadow-card-lg hover-glow" style="height: 500px; background: linear-gradient(135deg, #C2865A 0%, #8B6B5E 100%); overflow: hidden;">
+                    <img src="https://images.unsplash.com/photo-1558961363-fa8fdf82db35?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Our Bakery" class="w-100 h-100 object-fit-cover">
                 </div>
             </div>
         </div>
     </div>
 </section>
-
-<style>
-.about-section {
-    padding: 100px 0;
-    background: var(--gray);
-}
-
-.about-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 4rem;
-    align-items: center;
-}
-
-.about-content h2 {
-    font-size: 2.5rem;
-    margin-bottom: 1.5rem;
-    font-family: 'Playfair Display', serif;
-    color: var(--dark);
-}
-
-.about-content .lead {
-    font-size: 1.2rem;
-    color: var(--primary);
-    margin-bottom: 1.5rem;
-    font-weight: 500;
-}
-
-.about-stats {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 2rem;
-    margin-top: 2rem;
-}
-
-.stat {
-    text-align: center;
-}
-
-.stat-number {
-    display: block;
-    font-size: 2rem;
-    font-weight: 700;
-    color: var(--primary);
-}
-
-.stat-label {
-    font-size: 0.9rem;
-    color: var(--text-light);
-}
-
-.about-image {
-    text-align: center;
-}
-
-.image-frame {
-    width: 100%;
-    height: 400px;
-    background: linear-gradient(135deg, var(--primary-light) 0%, var(--primary) 100%);
-    border-radius: var(--radius);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--white);
-    font-size: 4rem;
-}
-
-@media (max-width: 768px) {
-    .about-grid {
-        grid-template-columns: 1fr;
-        gap: 2rem;
-    }
-    
-    .about-stats {
-        grid-template-columns: 1fr;
-        gap: 1rem;
-    }
-}
-</style>

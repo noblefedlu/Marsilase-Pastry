@@ -1,117 +1,73 @@
-<section id="testimonials" class="testimonials-section">
+
+<section id="testimonials" class="py-5">
     <div class="container">
-        <div class="section-header">
-            <h2>Customer Love</h2>
-            <p>What our customers say about us</p>
-        </div>
-        <div class="testimonials-grid">
-            <div class="testimonial-card">
-                <div class="testimonial-content">
-                    <div class="stars">
-                        <i class="bi bi-star-fill"></i>
-                        <i class="bi bi-star-fill"></i>
-                        <i class="bi bi-star-fill"></i>
-                        <i class="bi bi-star-fill"></i>
-                        <i class="bi bi-star-fill"></i>
+        <h2 class="section-title">Sweet Words From Our Customers</h2>
+        <p class="section-subtitle">Don't just take our word for it</p>
+
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="testimonial-card glass-card rounded-4 p-4 hover-glow">
+                    <div class="rating mb-3">
+                        <i class="bi bi-star-fill text-warning"></i>
+                        <i class="bi bi-star-fill text-warning"></i>
+                        <i class="bi bi-star-fill text-warning"></i>
+                        <i class="bi bi-star-fill text-warning"></i>
+                        <i class="bi bi-star-fill text-warning"></i>
                     </div>
-                    <p>"The Golden Celebration Cake made our anniversary absolutely magical! Exceptional quality and taste."</p>
-                </div>
-                <div class="testimonial-author">
-                    <strong>Sarah M.</strong>
-                    <span>Regular Customer</span>
+                    <p class="testimonial-text text-medium mb-4">
+                        "The Chocolate Fantasy cake was the highlight of my daughter's birthday! Everyone couldn't stop talking about how delicious it was."
+                    </p>
+                    <div class="customer-info d-flex align-items-center">
+                        <div class="customer-avatar rounded-circle me-3" style="width: 50px; height: 50px; background: linear-gradient(135deg, #C2865A 0%, #8B6B5E 100%);"></div>
+                        <div>
+                            <h6 class="mb-0 text-dark">Sarah M.</h6>
+                            <small class="text-muted">Addis Ababa</small>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div class="testimonial-card">
-                <div class="testimonial-content">
-                    <div class="stars">
-                        <i class="bi bi-star-fill"></i>
-                        <i class="bi bi-star-fill"></i>
-                        <i class="bi bi-star-fill"></i>
-                        <i class="bi bi-star-fill"></i>
-                        <i class="bi bi-star-fill"></i>
+            <div class="col-md-4">
+                <div class="testimonial-card glass-card rounded-4 p-4 hover-glow">
+                    <div class="rating mb-3">
+                        <i class="bi bi-star-fill text-warning"></i>
+                        <i class="bi bi-star-fill text-warning"></i>
+                        <i class="bi bi-star-fill text-warning"></i>
+                        <i class="bi bi-star-fill text-warning"></i>
+                        <i class="bi bi-star-fill text-warning"></i>
                     </div>
-                    <p>"Butter croissants are perfection! Fresh, flaky, and buttery. My morning routine is now complete."</p>
-                </div>
-                <div class="testimonial-author">
-                    <strong>Michael T.</strong>
-                    <span>Food Enthusiast</span>
+                    <p class="testimonial-text text-medium mb-4">
+                        "I've ordered from Marsilase multiple times for office events. The cakes are always fresh, beautiful, and absolutely delicious!"
+                    </p>
+                    <div class="customer-info d-flex align-items-center">
+                        <div class="customer-avatar rounded-circle me-3" style="width: 50px; height: 50px; background: linear-gradient(135deg, #C2865A 0%, #8B6B5E 100%);"></div>
+                        <div>
+                            <h6 class="mb-0 text-dark">Michael T.</h6>
+                            <small class="text-muted">Business Owner</small>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div class="testimonial-card">
-                <div class="testimonial-content">
-                    <div class="stars">
-                        <i class="bi bi-star-fill"></i>
-                        <i class="bi bi-star-fill"></i>
-                        <i class="bi bi-star-fill"></i>
-                        <i class="bi bi-star-fill"></i>
-                        <i class="bi bi-star-fill"></i>
+            <div class="col-md-4">
+                <div class="testimonial-card glass-card rounded-4 p-4 hover-glow">
+                    <div class="rating mb-3">
+                        <i class="bi bi-star-fill text-warning"></i>
+                        <i class="bi bi-star-fill text-warning"></i>
+                        <i class="bi bi-star-fill text-warning"></i>
+                        <i class="bi bi-star-fill text-warning"></i>
+                        <i class="bi bi-star-fill text-warning"></i>
                     </div>
-                    <p>"The Royal Cupcakes were the highlight of my daughter's birthday. Beautiful and incredibly delicious!"</p>
-                </div>
-                <div class="testimonial-author">
-                    <strong>Elena K.</strong>
-                    <span>Happy Parent</span>
+                    <p class="testimonial-text text-medium mb-4">
+                        "The customization options are amazing! They created exactly what I envisioned for our wedding cake. Perfect in every way."
+                    </p>
+                    <div class="customer-info d-flex align-items-center">
+                        <div class="customer-avatar rounded-circle me-3" style="width: 50px; height: 50px; background: linear-gradient(135deg, #C2865A 0%, #8B6B5E 100%);"></div>
+                        <div>
+                            <h6 class="mb-0 text-dark">Elena K.</h6>
+                            <small class="text-muted">Newlywed</small>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </section>
-
-<style>
-.testimonials-section {
-    padding: 100px 0;
-    background: var(--light);
-}
-
-.testimonials-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 2rem;
-}
-
-.testimonial-card {
-    background: var(--white);
-    padding: 2.5rem;
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
-    transition: var(--transition);
-}
-
-.testimonial-card:hover {
-    transform: translateY(-5px);
-    box-shadow: var(--shadow-lg);
-}
-
-.stars {
-    color: var(--secondary);
-    margin-bottom: 1rem;
-}
-
-.testimonial-content p {
-    font-style: italic;
-    color: var(--text);
-    margin-bottom: 1.5rem;
-    line-height: 1.7;
-}
-
-.testimonial-author {
-    border-top: 1px solid var(--border);
-    padding-top: 1rem;
-}
-
-.testimonial-author strong {
-    display: block;
-    color: var(--dark);
-}
-
-.testimonial-author span {
-    font-size: 0.9rem;
-    color: var(--text-light);
-}
-
-@media (max-width: 768px) {
-    .testimonials-grid {
-        grid-template-columns: 1fr;
-    }
-}
-</style>

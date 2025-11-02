@@ -1,3 +1,4 @@
+
 <?php ob_start(); ?>
 <?php
 session_start();
@@ -10,8 +11,14 @@ if (!isset($_SESSION['cart'])) {
 
 // Initialize all product arrays to empty arrays
 $cakes = [];
+$ice_creams = [];
+$soft_drinks = [];
+$hot_drinks = [];
 $cake_sizes = [];
 $cake_flavors = [];
+$ice_cream_flavors = [];
+$soft_drink_flavors = [];
+$hot_drink_flavors = [];
 $toppings = [];
 
 // Fetch cakes with error handling
@@ -20,6 +27,30 @@ if ($result && $result->num_rows > 0) {
     $cakes = $result->fetch_all(MYSQLI_ASSOC);
 } else {
     $cakes = [];
+}
+
+// Fetch ice creams with error handling
+$result = $conn->query("SELECT * FROM ice_creams WHERE is_active = TRUE");
+if ($result && $result->num_rows > 0) {
+    $ice_creams = $result->fetch_all(MYSQLI_ASSOC);
+} else {
+    $ice_creams = [];
+}
+
+// Fetch soft drinks with error handling
+$result = $conn->query("SELECT * FROM soft_drinks WHERE is_active = TRUE");
+if ($result && $result->num_rows > 0) {
+    $soft_drinks = $result->fetch_all(MYSQLI_ASSOC);
+} else {
+    $soft_drinks = [];
+}
+
+// Fetch hot drinks with error handling
+$result = $conn->query("SELECT * FROM hot_drinks WHERE is_active = TRUE");
+if ($result && $result->num_rows > 0) {
+    $hot_drinks = $result->fetch_all(MYSQLI_ASSOC);
+} else {
+    $hot_drinks = [];
 }
 
 // Fetch cake sizes with error handling
@@ -35,7 +66,31 @@ $result = $conn->query("SELECT name FROM flavors WHERE type = 'cake'");
 if ($result && $result->num_rows > 0) {
     $cake_flavors = array_column($result->fetch_all(MYSQLI_NUM), 0);
 } else {
-    $cake_flavors = ['Vanilla', 'Chocolate', 'Strawberry', 'Red Velvet', 'Lemon'];
+    $cake_flavors = ['Vanilla', 'Chocolate', 'Strawberry'];
+}
+
+// Fetch ice cream flavors with error handling
+$result = $conn->query("SELECT name FROM flavors WHERE type = 'ice_cream'");
+if ($result && $result->num_rows > 0) {
+    $ice_cream_flavors = array_column($result->fetch_all(MYSQLI_NUM), 0);
+} else {
+    $ice_cream_flavors = ['Vanilla', 'Chocolate', 'Strawberry'];
+}
+
+// Fetch soft drink flavors with error handling
+$result = $conn->query("SELECT name FROM flavors WHERE type = 'soft_drink'");
+if ($result && $result->num_rows > 0) {
+    $soft_drink_flavors = array_column($result->fetch_all(MYSQLI_NUM), 0);
+} else {
+    $soft_drink_flavors = ['Original', 'Cola', 'Orange', 'Lemon'];
+}
+
+// Fetch hot drink flavors with error handling
+$result = $conn->query("SELECT name FROM flavors WHERE type = 'hot_drink'");
+if ($result && $result->num_rows > 0) {
+    $hot_drink_flavors = array_column($result->fetch_all(MYSQLI_NUM), 0);
+} else {
+    $hot_drink_flavors = ['Regular', 'Strong', 'Light'];
 }
 
 // Fetch toppings with error handling
@@ -44,7 +99,7 @@ if ($result && $result->num_rows > 0) {
     $rows = $result->fetch_all(MYSQLI_ASSOC);
     $toppings = array_column($rows, 'name');
 } else {
-    $toppings = ['Chocolate Sauce', 'Caramel', 'Nuts', 'Sprinkles', 'Whipped Cream', 'Fresh Fruits'];
+    $toppings = ['Chocolate Sauce', 'Caramel', 'Nuts', 'Sprinkles', 'Whipped Cream'];
 }
 
 // Set current page with default value
@@ -62,20 +117,20 @@ $current_page = $_GET['page'] ?? 'home';
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
-            --primary: #d4af37;
-            --primary-dark: #b8941f;
-            --secondary: #8b4513;
-            --accent: #e67e22;
-            --light: #f9f5f0;
-            --dark: #2c2c2c;
-            --text: #333;
-            --text-light: #777;
-            --white: #ffffff;
-            --shadow: 0 5px 15px rgba(0,0,0,0.08);
-            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --primary-light: #F8E9D2; /* 60% - Light Caramel */
+            --primary-medium: #C2865A; /* 30% - Warm Chocolate */
+            --primary-dark: #4A2E2B; /* 10% - Deep Espresso */
+            --text-dark: #4A2E2B;
+            --text-medium: #6B3E2C;
+            --text-light: #8B6B5E;
+            --white: #FFFFFF;
+            --shadow: 0 8px 32px rgba(74, 46, 43, 0.08);
+            --shadow-lg: 0 16px 48px rgba(74, 46, 43, 0.12);
+            --transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
             --radius: 20px;
             --radius-sm: 12px;
-            --shadow-lg: 0 20px 40px rgba(0,0,0,0.1);
+            --glass: rgba(255, 255, 255, 0.25);
+            --glass-border: rgba(255, 255, 255, 0.18);
         }
 
         * {
@@ -90,22 +145,39 @@ $current_page = $_GET['page'] ?? 'home';
 
         body {
             font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, #fdfbfb 0%, #f9f5f0 100%);
-            color: var(--text);
+            background: var(--primary-light);
+            color: var(--text-medium);
             line-height: 1.7;
             min-height: 100vh;
+            overflow-x: hidden;
         }
 
         .display-font {
             font-family: 'Playfair Display', serif;
+            color: var(--text-dark);
+        }
+
+        /* Glassmorphism Effects */
+        .glass-card {
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--shadow);
+        }
+
+        .glass-section {
+            background: linear-gradient(135deg, rgba(248, 233, 210, 0.9) 0%, rgba(255, 255, 255, 0.8) 100%);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
         }
 
         /* Header Styles */
         .app-header {
-            background: rgba(255, 255, 255, 0.95);
+            background: rgba(248, 233, 210, 0.95) !important;
             backdrop-filter: blur(20px);
-            box-shadow: var(--shadow);
-            border-bottom: 1px solid rgba(212, 175, 55, 0.1);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(194, 134, 90, 0.2);
             transition: var(--transition);
             position: sticky;
             top: 0;
@@ -116,13 +188,13 @@ $current_page = $_GET['page'] ?? 'home';
             font-family: 'Playfair Display', serif;
             font-weight: 700;
             font-size: 1.8rem;
-            color: var(--primary);
+            color: var(--primary-dark) !important;
             transition: var(--transition);
         }
 
         .navbar-brand:hover {
             transform: translateY(-2px);
-            color: var(--primary-dark);
+            color: var(--primary-medium) !important;
         }
 
         .nav-link {
@@ -132,17 +204,17 @@ $current_page = $_GET['page'] ?? 'home';
             border-radius: var(--radius-sm);
             transition: var(--transition);
             position: relative;
-            color: var(--dark);
+            color: var(--text-dark) !important;
         }
 
         .nav-link:hover {
-            background: rgba(212, 175, 55, 0.1);
+            background: rgba(194, 134, 90, 0.1);
             transform: translateY(-2px);
-            color: var(--primary);
+            color: var(--primary-dark) !important;
         }
 
         .nav-link.active {
-            color: var(--primary);
+            color: var(--primary-dark) !important;
             font-weight: 600;
         }
 
@@ -154,15 +226,13 @@ $current_page = $_GET['page'] ?? 'home';
             transform: translateX(-50%);
             width: 30px;
             height: 2px;
-            background: var(--primary);
+            background: var(--primary-dark);
         }
 
         /* Hero Section */
         .hero-section {
-            background: linear-gradient(135deg, 
-                rgba(212, 175, 55, 0.15) 0%, 
-                rgba(184, 148, 31, 0.1) 100%);
-            padding: 6rem 0;
+            background: linear-gradient(135deg, var(--primary-light) 0%, rgba(194, 134, 90, 0.1) 100%);
+            padding: 8rem 0 6rem;
             position: relative;
             overflow: hidden;
         }
@@ -175,8 +245,8 @@ $current_page = $_GET['page'] ?? 'home';
             right: 0;
             bottom: 0;
             background: 
-                radial-gradient(circle at 20% 80%, rgba(212, 175, 55, 0.1) 0%, transparent 50%),
-                radial-gradient(circle at 80% 20%, rgba(139, 69, 19, 0.05) 0%, transparent 50%);
+                radial-gradient(circle at 20% 80%, rgba(194, 134, 90, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(74, 46, 43, 0.05) 0%, transparent 50%);
             animation: float 6s ease-in-out infinite;
         }
 
@@ -190,9 +260,7 @@ $current_page = $_GET['page'] ?? 'home';
             font-size: 3.5rem;
             font-weight: 700;
             margin-bottom: 1.5rem;
-            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            color: var(--primary-dark);
             animation: fadeInUp 1s ease-out;
         }
 
@@ -200,7 +268,7 @@ $current_page = $_GET['page'] ?? 'home';
             font-size: 1.3rem;
             font-weight: 400;
             margin-bottom: 2.5rem;
-            color: var(--text-light);
+            color: var(--text-medium);
             animation: fadeInUp 1s ease-out 0.2s both;
         }
 
@@ -212,7 +280,7 @@ $current_page = $_GET['page'] ?? 'home';
             text-align: center;
             font-family: 'Playfair Display', serif;
             font-weight: 700;
-            color: var(--primary);
+            color: var(--primary-dark);
             font-size: 2.8rem;
             animation: fadeInUp 0.8s ease-out;
         }
@@ -225,13 +293,13 @@ $current_page = $_GET['page'] ?? 'home';
             transform: translateX(-50%);
             width: 80px;
             height: 4px;
-            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            background: linear-gradient(135deg, var(--primary-medium) 0%, var(--primary-dark) 100%);
             border-radius: 2px;
         }
 
         .section-subtitle {
             text-align: center;
-            color: var(--text-light);
+            color: var(--text-medium);
             font-size: 1.2rem;
             margin-bottom: 4rem;
             max-width: 600px;
@@ -261,6 +329,7 @@ $current_page = $_GET['page'] ?? 'home';
             flex-direction: column;
             opacity: 0;
             transform: translateY(30px);
+            background: linear-gradient(135deg, var(--white) 0%, var(--primary-light) 100%);
         }
 
         .product-card.visible {
@@ -280,7 +349,7 @@ $current_page = $_GET['page'] ?? 'home';
             left: 0;
             right: 0;
             height: 4px;
-            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            background: linear-gradient(135deg, var(--primary-medium) 0%, var(--primary-dark) 100%);
             z-index: 2;
         }
 
@@ -313,13 +382,13 @@ $current_page = $_GET['page'] ?? 'home';
             position: absolute;
             top: 1rem;
             right: 1rem;
-            background: var(--secondary);
-            color: white;
+            background: var(--primary-dark);
+            color: var(--primary-light);
             padding: 0.5rem 1rem;
             border-radius: 20px;
             font-size: 0.8rem;
             font-weight: 600;
-            box-shadow: 0 4px 12px rgba(139,69,19,0.3);
+            box-shadow: 0 4px 12px rgba(74, 46, 43, 0.3);
             z-index: 3;
         }
 
@@ -333,13 +402,13 @@ $current_page = $_GET['page'] ?? 'home';
         .product-title {
             font-size: 1.4rem;
             font-weight: 700;
-            color: var(--text);
+            color: var(--text-dark);
             margin-bottom: 0.75rem;
             font-family: 'Playfair Display', serif;
         }
 
         .product-description {
-            color: var(--text-light);
+            color: var(--text-medium);
             font-size: 0.95rem;
             margin-bottom: 1.5rem;
             flex-grow: 1;
@@ -349,7 +418,7 @@ $current_page = $_GET['page'] ?? 'home';
         .product-price {
             font-size: 1.6rem;
             font-weight: 700;
-            color: var(--primary);
+            color: var(--primary-medium);
             margin-bottom: 1.5rem;
         }
 
@@ -386,44 +455,44 @@ $current_page = $_GET['page'] ?? 'home';
         }
 
         .btn-primary {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary-medium) 100%);
             border: none;
-            box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
-            color: var(--dark);
+            box-shadow: 0 4px 15px rgba(74, 46, 43, 0.3);
+            color: var(--primary-light);
         }
 
         .btn-primary:hover {
             transform: translateY(-3px);
-            box-shadow: 0 8px 25px rgba(212, 175, 55, 0.4);
-            background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
-            color: var(--dark);
+            box-shadow: 0 8px 25px rgba(74, 46, 43, 0.4);
+            background: linear-gradient(135deg, var(--primary-medium) 0%, var(--primary-dark) 100%);
+            color: var(--primary-light);
         }
 
         .btn-success {
-            background: linear-gradient(135deg, var(--secondary) 0%, #6b3710 100%);
+            background: linear-gradient(135deg, var(--primary-medium) 0%, var(--primary-dark) 100%);
             border: none;
-            box-shadow: 0 4px 15px rgba(139, 69, 19, 0.3);
-            color: var(--white);
+            box-shadow: 0 4px 15px rgba(194, 134, 90, 0.3);
+            color: var(--primary-light);
         }
 
         .btn-success:hover {
             transform: translateY(-3px);
-            box-shadow: 0 8px 25px rgba(139, 69, 19, 0.4);
-            background: linear-gradient(135deg, #6b3710 0%, var(--secondary) 100%);
-            color: var(--white);
+            box-shadow: 0 8px 25px rgba(194, 134, 90, 0.4);
+            background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary-medium) 100%);
+            color: var(--primary-light);
         }
 
         .btn-outline-primary {
-            color: var(--primary);
-            border: 2px solid var(--primary);
+            color: var(--primary-dark);
+            border: 2px solid var(--primary-dark);
             background: transparent;
         }
 
         .btn-outline-primary:hover {
-            background: var(--primary);
-            color: var(--dark);
+            background: var(--primary-dark);
+            color: var(--primary-light);
             transform: translateY(-3px);
-            box-shadow: 0 8px 25px rgba(212, 175, 55, 0.3);
+            box-shadow: 0 8px 25px rgba(74, 46, 43, 0.3);
         }
 
         /* Cart Badge */
@@ -431,8 +500,8 @@ $current_page = $_GET['page'] ?? 'home';
             position: absolute;
             top: -8px;
             right: -8px;
-            background: var(--secondary);
-            color: white;
+            background: var(--primary-medium);
+            color: var(--primary-light);
             border-radius: 50%;
             width: 22px;
             height: 22px;
@@ -441,7 +510,7 @@ $current_page = $_GET['page'] ?? 'home';
             align-items: center;
             justify-content: center;
             font-weight: 700;
-            box-shadow: 0 2px 8px rgba(139,69,19,0.3);
+            box-shadow: 0 2px 8px rgba(194, 134, 90, 0.3);
             animation: pulse 2s infinite;
         }
 
@@ -488,7 +557,7 @@ $current_page = $_GET['page'] ?? 'home';
         }
 
         .hover-glow:hover {
-            box-shadow: 0 10px 30px rgba(212, 175, 55, 0.2);
+            box-shadow: 0 10px 30px rgba(194, 134, 90, 0.2);
         }
 
         /* Toast Notification */
@@ -497,8 +566,8 @@ $current_page = $_GET['page'] ?? 'home';
             bottom: 2rem;
             left: 50%;
             transform: translateX(-50%) translateY(100px);
-            background: var(--dark);
-            color: var(--white);
+            background: var(--primary-dark);
+            color: var(--primary-light);
             padding: 1rem 2rem;
             border-radius: 50px;
             box-shadow: var(--shadow-lg);
@@ -521,7 +590,7 @@ $current_page = $_GET['page'] ?? 'home';
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(255,255,255,0.9);
+            background: rgba(248, 233, 210, 0.9);
             z-index: 4000;
             align-items: center;
             justify-content: center;
@@ -535,8 +604,8 @@ $current_page = $_GET['page'] ?? 'home';
         .spinner {
             width: 60px;
             height: 60px;
-            border: 4px solid var(--light);
-            border-top: 4px solid var(--primary);
+            border: 4px solid var(--primary-light);
+            border-top: 4px solid var(--primary-medium);
             border-radius: 50%;
             animation: spin 1s linear infinite;
         }
@@ -562,7 +631,7 @@ $current_page = $_GET['page'] ?? 'home';
             }
             
             .hero-section {
-                padding: 4rem 0;
+                padding: 6rem 0 4rem;
             }
             
             .btn {
@@ -572,13 +641,13 @@ $current_page = $_GET['page'] ?? 'home';
 
         /* Utility Classes */
         .text-gradient {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            background: linear-gradient(135deg, var(--primary-medium) 0%, var(--primary-dark) 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
 
         .bg-gradient {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            background: linear-gradient(135deg, var(--primary-medium) 0%, var(--primary-dark) 100%);
         }
 
         .shadow-card {
@@ -597,7 +666,8 @@ $current_page = $_GET['page'] ?? 'home';
             text-align: center;
             box-shadow: var(--shadow);
             transition: var(--transition);
-            border: 1px solid rgba(212, 175, 55, 0.1);
+            border: 1px solid rgba(194, 134, 90, 0.1);
+            background: linear-gradient(135deg, var(--white) 0%, var(--primary-light) 100%);
         }
 
         .feature-card:hover {
@@ -608,13 +678,13 @@ $current_page = $_GET['page'] ?? 'home';
         .feature-icon {
             width: 80px;
             height: 80px;
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            background: linear-gradient(135deg, var(--primary-medium) 0%, var(--primary-dark) 100%);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             margin: 0 auto 1.5rem;
-            color: var(--dark);
+            color: var(--primary-light);
             font-size: 2rem;
             transition: var(--transition);
         }
@@ -625,8 +695,8 @@ $current_page = $_GET['page'] ?? 'home';
 
         /* Footer */
         .footer {
-            background: linear-gradient(135deg, var(--primary-dark) 0%, var(--secondary) 100%);
-            color: white;
+            background: linear-gradient(135deg, var(--primary-medium) 0%, var(--primary-dark) 100%);
+            color: var(--primary-light);
             padding: 4rem 0 2rem;
             margin-top: 6rem;
         }
@@ -634,18 +704,18 @@ $current_page = $_GET['page'] ?? 'home';
         .footer h5 {
             font-weight: 600;
             margin-bottom: 1.5rem;
-            color: var(--light);
+            color: var(--primary-light);
             font-family: 'Playfair Display', serif;
         }
 
         .footer a {
-            color: rgba(255,255,255,0.8);
+            color: rgba(248, 233, 210, 0.8);
             text-decoration: none;
             transition: var(--transition);
         }
 
         .footer a:hover {
-            color: var(--light);
+            color: var(--primary-light);
             transform: translateX(5px);
         }
     </style>
@@ -654,43 +724,37 @@ $current_page = $_GET['page'] ?? 'home';
     <?php include 'components/header.php'; ?>
     
     <main class="app-main">
-<?php
-switch ($current_page) {
-    case 'home':
-        include 'pages/home.php';
-        break;
-    case 'full-menu':
-        include 'pages/full-menu.php';
-        break;
-    case 'customize-cake':
-        include 'pages/customize-cake.php';
-        break;
-    case 'review':
-        include 'pages/review.php';
-        break;
-    case 'customer-info':
-        include 'pages/customer-info.php';
-        break;
-    case 'thank-you':
-        include 'pages/thank-you.php';
-        break;
-    case 'about':
-        include 'pages/about.php';
-        break;
-    case 'testimonials':
-        include 'pages/testimonials.php';
-        break;
-    case 'contact':
-        include 'pages/contact.php';
-        break;
-    case 'track-order':
-        include 'pages/track-order.php';
-        break;
-    default:
-        include 'pages/home.php';
-        break;
-}
-?>
+        <?php
+        switch ($current_page) {
+            case 'home':
+                include 'pages/home.php';
+                break;
+            case 'customize-cake':
+                include 'pages/customize-cake.php';
+                break;
+            case 'review':
+                include 'pages/review.php';
+                break;
+            case 'customer-info':
+                include 'pages/customer-info.php';
+                break;
+            case 'thank-you':
+                include 'pages/thank-you.php';
+                break;
+            case 'about':
+                include 'pages/about.php';
+                break;
+            case 'testimonials':
+                include 'pages/testimonials.php';
+                break;
+            case 'contact':
+                include 'pages/contact.php';
+                break;
+            default:
+                include 'pages/home.php';
+                break;
+        }
+        ?>
     </main>
     
     <?php include 'components/footer.php'; ?>
@@ -752,13 +816,13 @@ switch ($current_page) {
         window.addEventListener('scroll', function() {
             const header = document.querySelector('.app-header');
             if (window.scrollY > 100) {
-                header.style.background = 'rgba(255, 255, 255, 0.98)';
+                header.style.background = 'rgba(248, 233, 210, 0.98)';
                 header.style.backdropFilter = 'blur(20px)';
-                header.style.boxShadow = '0 5px 20px rgba(0,0,0,0.1)';
+                header.style.boxShadow = '0 5px 20px rgba(74, 46, 43, 0.1)';
             } else {
-                header.style.background = 'rgba(255, 255, 255, 0.95)';
+                header.style.background = 'rgba(248, 233, 210, 0.95)';
                 header.style.backdropFilter = 'blur(20px)';
-                header.style.boxShadow = '0 5px 15px rgba(0,0,0,0.08)';
+                header.style.boxShadow = '0 5px 15px rgba(74, 46, 43, 0.08)';
             }
         });
 
