@@ -1,219 +1,176 @@
-
-<div class="container py-5">
-    <div class="row justify-content-center">
-        <div class="col-lg-10">
-            <!-- Header -->
-            <div class="text-center mb-5">
-                <h1 class="section-title">Review Your Order</h1>
-                <p class="section-subtitle">Almost there! Review your items before placing your order</p>
-            </div>
-
-            <?php if (empty($_SESSION['cart'])): ?>
-                <!-- Empty Cart State -->
-                <div class="text-center py-5">
-                    <div class="empty-cart-icon mb-4">
-                        <i class="bi bi-cart-x display-1 text-primary"></i>
-                    </div>
-                    <h3 class="text-dark mb-3">Your cart is empty</h3>
-                    <p class="text-medium mb-4">Looks like you haven't added any delicious items to your cart yet.</p>
-                    <a href="?page=home" class="btn btn-primary btn-lg hover-glow">
-                        <i class="bi bi-arrow-left me-2"></i>Start Shopping
+<?php
+// pages/review.php
+if (!isset($_SESSION['cart']) || empty($_SESSION['cart'])) {
+    echo '
+    <div class="section">
+        <div class="container-narrow text-center">
+            <div class="card">
+                <div class="card-body py-5">
+                    <i class="bi bi-cart-x display-1 text-muted mb-3"></i>
+                    <h3 class="mb-3">Your Cart is Empty</h3>
+                    <p class="text-muted mb-4">Add some delicious items to your cart first!</p>
+                    <a href="?page=home" class="btn btn-primary">
+                        <i class="bi bi-arrow-left me-2"></i>
+                        Continue Shopping
                     </a>
                 </div>
-            <?php else: ?>
-                <div class="row g-4">
-                    <!-- Order Items -->
-                    <div class="col-lg-8">
-                        <div class="cart-items-card glass-card rounded-4 p-4 hover-glow">
-                            <h4 class="mb-4 text-dark">
-                                <i class="bi bi-bag-check me-2"></i>
-                                Order Items (<?= count($_SESSION['cart']) ?>)
-                            </h4>
-                            
-                            <?php 
-                            $total = 0;
-                            foreach ($_SESSION['cart'] as $index => $item): 
-                                $total += $item['total_price'];
-                            ?>
-                            <div class="cart-item card border-0 bg-light mb-3 hover-glow">
-                                <div class="card-body">
-                                    <div class="row align-items-center">
-                                        <div class="col-md-2">
-                                            <div class="product-thumb rounded-3 d-flex align-items-center justify-content-center" 
-                                                 style="width: 80px; height: 80px; background: linear-gradient(135deg, var(--primary-medium) 0%, var(--primary-dark) 100%);">
-                                                <i class="bi bi-cake2 text-white fs-4"></i>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <h5 class="text-dark mb-1"><?= htmlspecialchars($item['product_name']) ?></h5>
-                                            <p class="text-medium mb-1 small">
-                                                <span class="badge bg-primary me-1"><?= $item['product_type'] ?></span>
-                                                <?php if (!empty($item['size'])): ?>
-                                                <span class="badge bg-secondary me-1"><?= $item['size'] ?></span>
-                                                <?php endif; ?>
-                                                <span class="badge bg-light text-dark"><?= $item['flavor'] ?></span>
-                                            </p>
-                                            <?php if (!empty($item['special_notes'])): ?>
-                                            <p class="text-medium mb-0 small">
-                                                <em>"<?= htmlspecialchars($item['special_notes']) ?>"</em>
-                                            </p>
-                                            <?php endif; ?>
-                                        </div>
-                                        <div class="col-md-2 text-center">
-                                            <div class="quantity-controls d-flex align-items-center justify-content-center">
-                                                <span class="fw-bold text-dark">Qty: <?= $item['quantity'] ?></span>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-2 text-end">
-                                            <div class="d-flex align-items-center justify-content-end">
-                                                <span class="fw-bold text-primary fs-5 me-2">
-                                                    ETB <?= number_format($item['total_price'], 2) ?>
-                                                </span>
-                                                <button class="btn btn-outline-danger btn-sm hover-glow" 
-                                                        onclick="removeFromCart(<?= $index ?>)" 
-                                                        title="Remove item">
-                                                    <i class="bi bi-trash"></i>
-                                                </button>
-                                            </div>
-                                        </div>
+            </div>
+        </div>
+    </div>';
+    return;
+}
+
+$cart_items = $_SESSION['cart'];
+$total_price = 0;
+$total_items = 0;
+
+foreach ($cart_items as $item) {
+    $total_price += $item['total_price'];
+    $total_items += $item['quantity'];
+}
+?>
+
+<div class="section">
+    <div class="container-narrow">
+        <div class="d-flex align-items-center justify-content-between mb-5">
+            <div>
+                <h1 class="display-4 display-font mb-2">Shopping Cart</h1>
+                <p class="text-muted">Review your items before checkout</p>
+            </div>
+            <a href="?page=home" class="btn btn-outline-primary">
+                <i class="bi bi-arrow-left me-2"></i>
+                Continue Shopping
+            </a>
+        </div>
+
+        <div class="row">
+            <div class="col-lg-8">
+                <div class="card">
+                    <div class="card-body">
+                        <?php foreach ($cart_items as $item): ?>
+                        <div class="cart-item border-bottom pb-4 mb-4">
+                            <div class="row align-items-center">
+                                <div class="col-md-8">
+                                    <h5 class="mb-2"><?= htmlspecialchars($item['product_name'] ?? 'Product') ?></h5>
+                                    <div class="text-muted small mb-2">
+                                        <span class="me-3">Size: <?= htmlspecialchars($item['size'] ?? 'Standard') ?></span>
+                                        <span>Flavor: <?= htmlspecialchars($item['flavor'] ?? 'Custom') ?></span>
                                     </div>
+                                    <?php if (!empty($item['special_notes'])): ?>
+                                    <div class="text-muted small">
+                                        <strong>Notes:</strong> <?= htmlspecialchars($item['special_notes']) ?>
+                                    </div>
+                                    <?php endif; ?>
                                 </div>
-                            </div>
-                            <?php endforeach; ?>
-                        </div>
-                    </div>
-
-                    <!-- Order Summary -->
-                    <div class="col-lg-4">
-                        <div class="order-summary-card glass-card rounded-4 p-4 hover-glow">
-                            <h4 class="mb-4 text-dark">
-                                <i class="bi bi-receipt me-2"></i>
-                                Order Summary
-                            </h4>
-                            
-                            <div class="summary-details mb-4">
-                                <?php foreach ($_SESSION['cart'] as $item): ?>
-                                <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <span class="text-medium small"><?= htmlspecialchars($item['product_name']) ?> × <?= $item['quantity'] ?></span>
-                                    <span class="fw-medium text-dark">ETB <?= number_format($item['total_price'], 2) ?></span>
-                                </div>
-                                <?php endforeach; ?>
-                            </div>
-
-                            <hr>
-
-                            <div class="total-section mb-4">
-                                <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <span class="text-medium">Subtotal</span>
-                                    <span class="fw-bold text-dark">ETB <?= number_format($total, 2) ?></span>
-                                </div>
-                                <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <span class="text-medium">Delivery</span>
-                                    <span class="fw-bold text-success">FREE</span>
-                                </div>
-                                <div class="d-flex justify-content-between align-items-center mb-3">
-                                    <span class="text-medium">Tax</span>
-                                    <span class="fw-bold text-dark">Included</span>
-                                </div>
-                                <div class="d-flex justify-content-between align-items-center border-top pt-3">
-                                    <span class="fs-5 fw-bold text-dark">Total Amount:</span>
-                                    <span class="fs-4 fw-bold text-primary">ETB <?= number_format($total, 2) ?></span>
-                                </div>
-                            </div>
-
-                            <div class="action-buttons">
-                                <div class="d-grid gap-2">
-                                    <a href="?page=home" class="btn btn-outline-primary hover-glow">
-                                        <i class="bi bi-plus-circle me-2"></i>Add More Items
-                                    </a>
-                                    <a href="?page=customer-info" class="btn btn-primary btn-lg py-3 fw-bold hover-glow">
-                                        <i class="bi bi-bag-check me-2"></i>Proceed to Checkout
-                                    </a>
-                                </div>
-                                
-                                <div class="text-center mt-3">
-                                    <small class="text-medium">
-                                        <i class="bi bi-shield-check me-1"></i>Secure checkout · No payment required
-                                    </small>
+                                <div class="col-md-4 text-end">
+                                    <div class="d-flex align-items-center justify-content-end mb-2">
+                                        <button class="btn btn-outline-secondary btn-sm" onclick="updateCartItem('<?= $item['cart_item_id'] ?? '' ?>', -1)">
+                                            <i class="bi bi-dash"></i>
+                                        </button>
+                                        <span class="mx-3 fw-bold"><?= $item['quantity'] ?? 1 ?></span>
+                                        <button class="btn btn-outline-secondary btn-sm" onclick="updateCartItem('<?= $item['cart_item_id'] ?? '' ?>', 1)">
+                                            <i class="bi bi-plus"></i>
+                                        </button>
+                                    </div>
+                                    <div class="fw-bold text-primary fs-5">
+                                        ETB <?= number_format($item['total_price'] ?? 0, 2) ?>
+                                    </div>
+                                    <small class="text-muted">ETB <?= number_format($item['unit_price'] ?? 0, 2) ?> each</small>
                                 </div>
                             </div>
                         </div>
+                        <?php endforeach; ?>
                     </div>
                 </div>
-            <?php endif; ?>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Order Summary</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <span>Items (<?= $total_items ?>):</span>
+                            <span class="fw-bold">ETB <?= number_format($total_price, 2) ?></span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <span>Delivery:</span>
+                            <span class="fw-bold"><?= $total_price > 500 ? 'FREE' : 'ETB 50.00' ?></span>
+                        </div>
+                        <hr>
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <span class="fs-5 fw-bold">Total:</span>
+                            <span class="fs-4 fw-bold text-primary">
+                                ETB <?= number_format($total_price > 500 ? $total_price : $total_price + 50, 2) ?>
+                            </span>
+                        </div>
+                        <button class="btn btn-primary w-100 btn-lg" onclick="proceedToCheckout()">
+                            <i class="bi bi-credit-card me-2"></i>
+                            Proceed to Checkout
+                        </button>
+                        <button class="btn btn-outline-danger w-100 mt-2" onclick="clearCart()">
+                            <i class="bi bi-trash me-2"></i>
+                            Clear Cart
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
 
 <script>
-function removeFromCart(index) {
-    if (!confirm('Are you sure you want to remove this item from your cart?')) {
+function updateCartItem(cartItemId, change) {
+    if (!cartItemId) {
+        console.error('No cart item ID provided');
         return;
     }
 
     const formData = new FormData();
-    formData.append('action', 'remove_from_cart');
-    formData.append('index', index);
-    
-    showLoader();
-    
+    formData.append('action', 'update_cart');
+    formData.append('cart_item_id', cartItemId);
+    formData.append('quantity', change);
+
     fetch('cart.php', {
         method: 'POST',
         body: formData
     })
     .then(response => response.json())
     .then(data => {
-        hideLoader();
         if (data.success) {
-            showToast('Item removed from cart');
-            setTimeout(() => {
-                location.reload();
-            }, 1000);
+            location.reload();
         } else {
-            showToast('Error removing item: ' + data.message);
+            alert('Error updating cart: ' + data.message);
         }
     })
     .catch(error => {
-        hideLoader();
         console.error('Error:', error);
-        showToast('Error removing item from cart');
+        alert('Error updating cart');
     });
 }
+
+function clearCart() {
+    if (confirm('Are you sure you want to clear your cart?')) {
+        fetch('cart.php', {
+            method: 'POST',
+            body: new URLSearchParams({ action: 'clear_cart' })
+        })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error clearing cart');
+    });
+    }
+}
+
+function proceedToCheckout() {
+    // FIXED: Redirect to customer information page instead of checkout
+    window.location.href = '?page=customer-info';
+}
 </script>
-
-<style>
-.cart-items-card, .order-summary-card {
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-.cart-items-card:hover, .order-summary-card:hover {
-    transform: translateY(-2px);
-}
-
-.cart-item {
-    transition: transform 0.2s ease;
-}
-
-.cart-item:hover {
-    transform: translateX(5px);
-}
-
-.empty-cart-icon {
-    animation: bounce 2s infinite;
-}
-
-@keyframes bounce {
-    0%, 20%, 50%, 80%, 100% {transform: translateY(0);}
-    40% {transform: translateY(-10px);}
-    60% {transform: translateY(-5px);}
-}
-
-.quantity-controls .btn {
-    width: 35px;
-    height: 35px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50%;
-}
-</style>

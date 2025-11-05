@@ -1,89 +1,104 @@
 <?php
 session_start();
-include '../config.php';
 
-if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_role'] !== 'super_admin') {
-    header('Location: login.php');
+// Define the root directory and config path
+$root_dir = dirname(dirname(__FILE__));
+$config_path = $root_dir . '/config.php';
+
+// Check if config file exists before requiring it
+if (!file_exists($config_path)) {
+    die("Configuration file not found. Please check if config.php exists in the root directory.");
+}
+
+require_once $config_path;
+
+// Check database connection
+if (!$conn) {
+    die("Database connection failed: " . $conn->connect_error);
+}
+
+// Check admin authentication and super admin role
+if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true || $_SESSION['admin_role'] !== 'super_admin') {
+    header('Location: ../?page=admin-login');
     exit;
 }
 
+// Handle admin actions
 $message = '';
 $error = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $action = $_POST['action'] ?? '';
-    
-    if ($action === 'create_admin') {
-        $username = trim($_POST['username'] ?? '');
-        $password = $_POST['password'] ?? '';
-        $full_name = trim($_POST['full_name'] ?? '');
-        $role = $_POST['role'] ?? 'admin';
-        
-        if (empty($username) || empty($password) || empty($full_name)) {
-            $error = 'All fields are required';
-        } elseif (strlen($password) < 6) {
-            $error = 'Password must be at least 6 characters long';
-        } else {
-            $stmt = $conn->prepare("SELECT id FROM admins WHERE username = ?");
-            $stmt->bind_param("s", $username);
-            $stmt->execute();
-            $result = $stmt->get_result();
-            
-            if ($result->num_rows > 0) {
-                $error = 'Username already exists';
-            } else {
-                $password_hash = password_hash($password, PASSWORD_DEFAULT);
-                $stmt = $conn->prepare("INSERT INTO admins (username, password_hash, full_name, role) VALUES (?, ?, ?, ?)");
-                $stmt->bind_param("ssss", $username, $password_hash, $full_name, $role);
-                
+    if (isset($_POST['action'])) {
+        if ($_POST['action'] === 'add_admin') {
+            $username = $_POST['username'];
+            $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
+            $full_name = $_POST['full_name'];
+            $role = $_POST['role'];
+
+            $stmt = $conn->prepare("INSERT INTO admins (username, password_hash, full_name, role) VALUES (?, ?, ?, ?)");
+            if ($stmt) {
+                $stmt->bind_param("ssss", $username, $password, $full_name, $role);
                 if ($stmt->execute()) {
-                    $message = 'Admin created successfully';
+                    $message = "Admin added successfully!";
                 } else {
-                    $error = 'Failed to create admin: ' . $stmt->error;
+                    $error = "Failed to add admin: " . $stmt->error;
                 }
-            }
-            $stmt->close();
-        }
-    } elseif ($action === 'update_status') {
-        $admin_id = intval($_POST['admin_id'] ?? 0);
-        $is_active = isset($_POST['is_active']) ? 1 : 0;
-        
-        if ($admin_id === $_SESSION['admin_id']) {
-            $error = 'You cannot deactivate your own account';
-        } else {
-            $stmt = $conn->prepare("UPDATE admins SET is_active = ? WHERE id = ?");
-            $stmt->bind_param("ii", $is_active, $admin_id);
-            
-            if ($stmt->execute()) {
-                $message = 'Admin status updated successfully';
+                $stmt->close();
             } else {
-                $error = 'Failed to update admin status';
+                $error = "Database error: " . $conn->error;
             }
-            $stmt->close();
         }
-    } elseif ($action === 'delete_admin') {
-        $admin_id = intval($_POST['admin_id'] ?? 0);
-        
-        if ($admin_id === $_SESSION['admin_id']) {
-            $error = 'You cannot delete your own account';
-        } else {
-            $stmt = $conn->prepare("DELETE FROM admins WHERE id = ?");
-            $stmt->bind_param("i", $admin_id);
-            
-            if ($stmt->execute()) {
-                $message = 'Admin deleted successfully';
+
+        if ($_POST['action'] === 'update_admin') {
+            $id = $_POST['id'];
+            $full_name = $_POST['full_name'];
+            $role = $_POST['role'];
+            $is_active = isset($_POST['is_active']) ? 1 : 0;
+
+            $stmt = $conn->prepare("UPDATE admins SET full_name=?, role=?, is_active=? WHERE id=?");
+            if ($stmt) {
+                $stmt->bind_param("ssii", $full_name, $role, $is_active, $id);
+                if ($stmt->execute()) {
+                    $message = "Admin updated successfully!";
+                } else {
+                    $error = "Failed to update admin: " . $stmt->error;
+                }
+                $stmt->close();
             } else {
-                $error = 'Failed to delete admin';
+                $error = "Database error: " . $conn->error;
             }
-            $stmt->close();
         }
     }
 }
 
-$admins = [];
-$result = $conn->query("SELECT id, username, full_name, role, is_active, created_at FROM admins ORDER BY created_at DESC");
-if ($result) {
-    $admins = $result->fetch_all(MYSQLI_ASSOC);
+if (isset($_GET['action']) && $_GET['action'] === 'delete' && isset($_GET['id'])) {
+    $id = $_GET['id'];
+    // Don't allow deleting yourself
+    if ($id != $_SESSION['admin_id']) {
+        $stmt = $conn->prepare("DELETE FROM admins WHERE id = ?");
+        if ($stmt) {
+            $stmt->bind_param("i", $id);
+            if ($stmt->execute()) {
+                $message = "Admin deleted successfully!";
+            } else {
+                $error = "Failed to delete admin: " . $stmt->error;
+            }
+            $stmt->close();
+        } else {
+            $error = "Database error: " . $conn->error;
+        }
+    } else {
+        $error = "You cannot delete your own account!";
+    }
+}
+
+// Get all admins
+$admins_result = $conn->query("SELECT * FROM admins ORDER BY created_at DESC");
+if ($admins_result) {
+    $admins = $admins_result->fetch_all(MYSQLI_ASSOC);
+} else {
+    $admins = [];
+    $error = "Failed to load admins: " . $conn->error;
 }
 ?>
 <!DOCTYPE html>
@@ -94,197 +109,41 @@ if ($result) {
     <title>Manage Admins - Marsilase Pastry</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --primary: #8B4513;
-            --primary-dark: #654321;
-            --secondary: #D4A574;
-            --light: #FFF8F0;
-            --dark: #5D4037;
-            --text: #2D3748;
-            --text-light: #718096;
-            --success: #48BB78;
-            --danger: #F56565;
-            --border: #E2E8F0;
-            --shadow: 0 4px 12px rgba(0,0,0,0.05);
-            --radius: 12px;
-        }
-
-        body {
-            font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-            min-height: 100vh;
-        }
-
-        .admin-header {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-            box-shadow: var(--shadow);
-        }
-
-        .card {
-            border: none;
-            border-radius: var(--radius);
-            box-shadow: var(--shadow);
-            margin-bottom: 1.5rem;
-        }
-
-        .card-header {
-            background: white;
-            border-bottom: 1px solid var(--border);
-            padding: 1.25rem 1.5rem;
-            font-weight: 600;
-            color: var(--primary);
-        }
-
-        .table th {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-            color: white;
-            border: none;
-            font-weight: 600;
-            padding: 1rem 1.5rem;
-        }
-
-        .form-control:focus {
-            border-color: var(--primary);
-            box-shadow: 0 0 0 0.2rem rgba(139, 69, 19, 0.1);
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-            border: none;
-            font-weight: 500;
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(139, 69, 19, 0.3);
-        }
-
-        .form-check-input:checked {
-            background-color: var(--primary);
-            border-color: var(--primary);
-        }
-
-        .badge-super-admin {
-            background: linear-gradient(135deg, #E53E3E 0%, #C53030 100%);
-            color: white;
-        }
-
-        .badge-admin {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-            color: white;
-        }
-
-        .badge-moderator {
-            background: linear-gradient(135deg, #4299E1 0%, #3182CE 100%);
-            color: white;
-        }
-
-        .alert {
-            border: none;
-            border-radius: var(--radius);
-            padding: 1rem 1.25rem;
-        }
-    </style>
 </head>
-<body class="admin-panel">
-    <nav class="navbar navbar-dark admin-header">
-        <div class="container">
-            <span class="navbar-brand fw-bold">
-                <i class="bi bi-people me-2"></i>Manage Administrators
-            </span>
-            <div>
-                <a href="index.php" class="btn btn-outline-light btn-sm me-2">
-                    <i class="bi bi-arrow-left me-1"></i>Back to Dashboard
-                </a>
-                <a href="logout.php" class="btn btn-outline-light btn-sm">
-                    <i class="bi bi-box-arrow-right me-1"></i>Logout
-                </a>
-            </div>
-        </div>
-    </nav>
-
-    <div class="container mt-4">
-        <h2 class="fw-bold mb-4 text-dark">Administrator Management</h2>
-        
-        <?php if ($message): ?>
-        <div class="alert alert-success d-flex align-items-center">
-            <i class="bi bi-check-circle-fill me-2 fs-5"></i>
-            <?= htmlspecialchars($message) ?>
-        </div>
-        <?php endif; ?>
-        
-        <?php if ($error): ?>
-        <div class="alert alert-danger d-flex align-items-center">
-            <i class="bi bi-exclamation-triangle-fill me-2 fs-5"></i>
-            <?= htmlspecialchars($error) ?>
-        </div>
-        <?php endif; ?>
-
-        <div class="row g-4">
-            <!-- Create Admin Form -->
-            <div class="col-lg-4">
-                <div class="card h-100">
-                    <div class="card-header">
-                        <h5 class="card-title mb-0">
-                            <i class="bi bi-person-plus me-2"></i>Create New Admin
-                        </h5>
-                    </div>
-                    <div class="card-body">
-                        <form method="POST">
-                            <input type="hidden" name="action" value="create_admin">
-                            
-                            <div class="mb-3">
-                                <label class="form-label fw-semibold">Full Name</label>
-                                <input type="text" class="form-control" name="full_name" required
-                                       placeholder="Enter full name">
-                            </div>
-                            
-                            <div class="mb-3">
-                                <label class="form-label fw-semibold">Username</label>
-                                <input type="text" class="form-control" name="username" required
-                                       placeholder="Choose username">
-                            </div>
-                            
-                            <div class="mb-3">
-                                <label class="form-label fw-semibold">Password</label>
-                                <input type="password" class="form-control" name="password" required
-                                       placeholder="Set password" minlength="6">
-                                <div class="form-text small">Minimum 6 characters</div>
-                            </div>
-                            
-                            <div class="mb-3">
-                                <label class="form-label fw-semibold">Role</label>
-                                <select class="form-select" name="role">
-                                    <option value="admin">Administrator</option>
-                                    <option value="moderator">Moderator</option>
-                                </select>
-                            </div>
-                            
-                            <button type="submit" class="btn btn-primary w-100 fw-bold py-2">
-                                <i class="bi bi-person-plus me-2"></i>Create Admin Account
-                            </button>
-                        </form>
-                    </div>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <?php include 'sidebar.php'; ?>
+            
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h1 class="h2">Manage Administrators</h1>
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#adminModal">
+                        <i class="bi bi-person-plus me-1"></i>
+                        Add New Admin
+                    </button>
                 </div>
-            </div>
 
-            <!-- Admins List -->
-            <div class="col-lg-8">
+                <?php if (!empty($message)): ?>
+                    <div class="alert alert-success"><?= htmlspecialchars($message) ?></div>
+                <?php endif; ?>
+                
+                <?php if (!empty($error)): ?>
+                    <div class="alert alert-danger"><?= htmlspecialchars($error) ?></div>
+                <?php endif; ?>
+
                 <div class="card">
                     <div class="card-header">
-                        <h5 class="card-title mb-0">
-                            <i class="bi bi-people me-2"></i>Administrators List
-                        </h5>
+                        <h5 class="mb-0">All Administrators</h5>
                     </div>
                     <div class="card-body">
                         <div class="table-responsive">
-                            <table class="table table-hover">
+                            <table class="table table-bordered table-hover">
                                 <thead>
                                     <tr>
-                                        <th>Name</th>
+                                        <th>ID</th>
                                         <th>Username</th>
+                                        <th>Full Name</th>
                                         <th>Role</th>
                                         <th>Status</th>
                                         <th>Created</th>
@@ -294,50 +153,37 @@ if ($result) {
                                 <tbody>
                                     <?php foreach ($admins as $admin): ?>
                                     <tr>
-                                        <td class="fw-semibold"><?= htmlspecialchars($admin['full_name']) ?></td>
+                                        <td><?= htmlspecialchars($admin['id']) ?></td>
+                                        <td><?= htmlspecialchars($admin['username']) ?></td>
+                                        <td><?= htmlspecialchars($admin['full_name']) ?></td>
                                         <td>
-                                            <code class="text-primary"><?= htmlspecialchars($admin['username']) ?></code>
-                                        </td>
-                                        <td>
-                                            <span class="badge badge-<?= str_replace('_', '-', $admin['role']) ?>">
-                                                <i class="bi bi-<?= $admin['role'] === 'super_admin' ? 'shield-shaded' : ($admin['role'] === 'admin' ? 'person-gear' : 'person') ?> me-1"></i>
+                                            <span class="badge bg-<?= 
+                                                $admin['role'] === 'super_admin' ? 'danger' : 
+                                                ($admin['role'] === 'admin' ? 'primary' : 'secondary')
+                                            ?>">
                                                 <?= ucfirst(str_replace('_', ' ', $admin['role'])) ?>
                                             </span>
                                         </td>
                                         <td>
-                                            <?php if ($admin['id'] !== $_SESSION['admin_id']): ?>
-                                            <form method="POST" class="d-inline">
-                                                <input type="hidden" name="action" value="update_status">
-                                                <input type="hidden" name="admin_id" value="<?= $admin['id'] ?>">
-                                                <div class="form-check form-switch">
-                                                    <input class="form-check-input" type="checkbox" name="is_active" 
-                                                           <?= $admin['is_active'] ? 'checked' : '' ?> 
-                                                           onchange="this.form.submit()"
-                                                           style="transform: scale(1.2);">
-                                                </div>
-                                            </form>
+                                            <?php if ($admin['is_active']): ?>
+                                                <span class="badge bg-success">Active</span>
                                             <?php else: ?>
-                                                <span class="badge bg-success">
-                                                    <i class="bi bi-check-circle me-1"></i>Active
-                                                </span>
+                                                <span class="badge bg-danger">Inactive</span>
                                             <?php endif; ?>
                                         </td>
-                                        <td class="text-muted small">
-                                            <?= date('M j, Y', strtotime($admin['created_at'])) ?>
-                                        </td>
+                                        <td><?= date('M j, Y', strtotime($admin['created_at'])) ?></td>
                                         <td>
-                                            <?php if ($admin['id'] !== $_SESSION['admin_id'] && $admin['role'] !== 'super_admin'): ?>
-                                            <form method="POST" class="d-inline" 
-                                                  onsubmit="return confirm('Are you sure you want to delete this admin? This action cannot be undone.')">
-                                                <input type="hidden" name="action" value="delete_admin">
-                                                <input type="hidden" name="admin_id" value="<?= $admin['id'] ?>">
-                                                <button type="submit" class="btn btn-sm btn-outline-danger" 
-                                                        title="Delete Admin">
+                                            <?php if ($admin['id'] != $_SESSION['admin_id']): ?>
+                                                <a href="?edit=<?= $admin['id'] ?>" class="btn btn-sm btn-warning">
+                                                    <i class="bi bi-pencil"></i>
+                                                </a>
+                                                <a href="?action=delete&id=<?= $admin['id'] ?>" 
+                                                   class="btn btn-sm btn-danger" 
+                                                   onclick="return confirm('Are you sure you want to delete this admin?')">
                                                     <i class="bi bi-trash"></i>
-                                                </button>
-                                            </form>
+                                                </a>
                                             <?php else: ?>
-                                                <span class="text-muted small">-</span>
+                                                <span class="text-muted">Current User</span>
                                             <?php endif; ?>
                                         </td>
                                     </tr>
@@ -347,6 +193,50 @@ if ($result) {
                         </div>
                     </div>
                 </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Admin Modal -->
+    <div class="modal fade" id="adminModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add New Administrator</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form method="POST">
+                    <div class="modal-body">
+                        <input type="hidden" name="action" value="add_admin">
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Username</label>
+                            <input type="text" class="form-control" name="username" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Password</label>
+                            <input type="password" class="form-control" name="password" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Full Name</label>
+                            <input type="text" class="form-control" name="full_name" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Role</label>
+                            <select class="form-select" name="role" required>
+                                <option value="admin">Admin</option>
+                                <option value="moderator">Moderator</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Add Admin</button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
@@ -354,4 +244,9 @@ if ($result) {
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
-<?php $conn->close(); ?>
+<?php 
+// Close connection only if it exists and is valid
+if (isset($conn) && $conn) {
+    $conn->close();
+}
+?>

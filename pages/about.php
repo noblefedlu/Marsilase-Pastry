@@ -1,35 +1,100 @@
+<?php
+// pages/about.php
+?>
+<div class="section">
+    <div class="container-narrow">
+        <div class="text-center mb-5" data-animate>
+            <h1 class="display-4 display-font mb-3">About Marsilase Pastry</h1>
+            <p class="text-lead">Crafting unforgettable moments through exquisite cakes and desserts since 2010</p>
+        </div>
 
-<section id="about" class="py-5 glass-section">
-    <div class="container">
-        <div class="row align-items-center">
-            <div class="col-lg-6">
-                <h2 class="section-title text-start">Our Story</h2>
-                <p class="lead text-medium mb-4">
-                    For over a decade, Marsilase Pastries has been crafting unforgettable moments through our exquisite cakes and desserts.
+        <div class="row align-items-center mb-5">
+            <div class="col-lg-6" data-animate>
+                <h2 class="display-6 display-font mb-4">Our Story</h2>
+                <p class="text-lead mb-4">
+                    Founded in 2010, Marsilase Pastry began as a small family-owned bakery with a simple mission: 
+                    to create the most exquisite cakes and desserts in Addis Ababa.
                 </p>
-                <p class="text-medium mb-4">
-                    Our master bakers combine traditional techniques with innovative flavors to create cakes that not only look stunning but taste extraordinary. Every ingredient is carefully selected, and every cake is baked with passion.
+                <p class="mb-4">
+                    What started as a passion project has grown into one of the city's most beloved pastry shops, 
+                    known for our commitment to quality, innovation, and exceptional customer service.
                 </p>
-                <div class="feature-list">
-                    <div class="d-flex align-items-center mb-3">
-                        <i class="bi bi-check-circle-fill text-success me-3 fs-5"></i>
-                        <span class="text-medium">100% Natural Ingredients</span>
+                <div class="d-flex flex-wrap gap-3 mb-4">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-check-circle-fill text-primary me-2"></i>
+                        <span>Family-owned since 2010</span>
                     </div>
-                    <div class="d-flex align-items-center mb-3">
-                        <i class="bi bi-check-circle-fill text-success me-3 fs-5"></i>
-                        <span class="text-medium">Handcrafted Daily</span>
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-check-circle-fill text-primary me-2"></i>
+                        <span>100+ custom cakes monthly</span>
                     </div>
-                    <div class="d-flex align-items-center mb-3">
-                        <i class="bi bi-check-circle-fill text-success me-3 fs-5"></i>
-                        <span class="text-medium">Custom Designs Available</span>
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-check-circle-fill text-primary me-2"></i>
+                        <span>5-star rated service</span>
                     </div>
                 </div>
             </div>
-            <div class="col-lg-6">
-                <div class="about-image rounded-4 shadow-card-lg hover-glow" style="height: 500px; background: linear-gradient(135deg, #C2865A 0%, #8B6B5E 100%); overflow: hidden;">
-                    <img src="https://images.unsplash.com/photo-1558961363-fa8fdf82db35?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Our Bakery" class="w-100 h-100 object-fit-cover">
+            <div class="col-lg-6" data-animate>
+                <div class="card">
+                    <img src="https://images.unsplash.com/photo-1558961363-fa8fdf82db35?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" 
+                         alt="Our Bakery" 
+                         class="card-img-top"
+                         loading="lazy">
+                </div>
+            </div>
+        </div>
+
+        <!-- Our Values -->
+        <div class="row mb-5">
+            <div class="col-12 text-center mb-5" data-animate>
+                <h2 class="display-6 display-font mb-3">Our Values</h2>
+                <p class="text-lead">The principles that guide everything we do</p>
+            </div>
+            
+            <div class="col-lg-4" data-animate>
+                <div class="card h-100">
+                    <div class="card-body text-center">
+                        <div class="feature-icon mx-auto mb-3">
+                            <i class="bi bi-star"></i>
+                        </div>
+                        <h4>Quality First</h4>
+                        <p class="text-muted">
+                            We never compromise on quality. Every ingredient is carefully selected, 
+                            and every cake is crafted with precision and care.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-4" data-animate>
+                <div class="card h-100">
+                    <div class="card-body text-center">
+                        <div class="feature-icon mx-auto mb-3">
+                            <i class="bi bi-heart"></i>
+                        </div>
+                        <h4>Passion Driven</h4>
+                        <p class="text-muted">
+                            Our work is our passion. We pour our hearts into every creation, 
+                            ensuring each cake tells a story of love and dedication.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-4" data-animate>
+                <div class="card h-100">
+                    <div class="card-body text-center">
+                        <div class="feature-icon mx-auto mb-3">
+                            <i class="bi bi-people"></i>
+                        </div>
+                        <h4>Community Focused</h4>
+                        <p class="text-muted">
+                            We believe in building lasting relationships with our customers 
+                            and contributing positively to our community.
+                        </p>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</section>
+</div>

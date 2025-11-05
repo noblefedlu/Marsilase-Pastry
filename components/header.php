@@ -1,60 +1,55 @@
+    <nav class="navbar" id="navbar">
+        <div class="container-narrow">
+            <div class="d-flex justify-content-between align-items-center">
+                <a class="navbar-brand" href="?page=home">
+                    <i class="bi bi-cake2"></i>
+                    Marsilase Pastry
+                </a>
+                
+                <div class="d-none d-md-flex align-items-center gap-3">
+                    <a class="nav-link <?= $current_page === 'home' ? 'active' : '' ?>" href="?page=home">Home</a>
+                    <a class="nav-link" href="?page=products">Products</a>
+                    <a class="nav-link" href="?page=about">About</a>
+                    <a class="nav-link" href="?page=testimonials">Testimonials</a>
+                    <a class="nav-link" href="?page=contact">Contact</a>
 
-<header class="app-header navbar navbar-expand-lg navbar-light">
-    <div class="container">
-        <a class="navbar-brand" href="?page=home">
-            <i class="bi bi-cake2 me-2"></i>
-            Marsilase Pastries
-        </a>
-        
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav mx-auto">
-                <li class="nav-item">
-                    <a class="nav-link <?= ($current_page == 'home') ? 'active' : '' ?>" href="?page=home">
-                        <i class="bi bi-house me-1"></i>Home
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="#featured-cakes">
-                        <i class="bi bi-cake me-1"></i>Menu
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="#about">
-                        <i class="bi bi-info-circle me-1"></i>About
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="#testimonials">
-                        <i class="bi bi-chat-quote me-1"></i>Testimonials
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="#contact">
-                        <i class="bi bi-telephone me-1"></i>Contact
-                    </a>
-                </li>
-            </ul>
-            
-            <div class="navbar-nav">
-                <?php
-                $cart_count = 0;
-                if (isset($_SESSION['cart'])) {
+                    <?php
+                    $cart_count = 0;
                     foreach ($_SESSION['cart'] as $item) {
                         $cart_count += $item['quantity'] ?? 1;
                     }
-                }
-                ?>
-                <a href="?page=review" class="nav-link position-relative">
-                    <i class="bi bi-cart3 fs-5"></i>
-                    <?php if ($cart_count > 0): ?>
-                        <span class="cart-badge"><?= $cart_count ?></span>
-                    <?php endif; ?>
-                </a>
+                    ?>
+                    <a href="?page=review" class="nav-link position-relative">
+                        <i class="bi bi-cart3"></i>
+                        <?php if ($cart_count > 0): ?>
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                                <?= $cart_count ?>
+                            </span>
+                        <?php endif; ?>
+                    </a>
+                </div>
+                
+                <!-- Mobile menu button -->
+                <button class="d-md-none btn btn-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#mobileMenu">
+                    <i class="bi bi-list"></i>
+                </button>
+            </div>
+            
+            <!-- Mobile Menu -->
+            <div class="collapse d-md-none mt-3" id="mobileMenu">
+                <div class="d-flex flex-column gap-2">
+                    <a class="nav-link <?= $current_page === 'home' ? 'active' : '' ?>" href="?page=home">Home</a>
+                    <a class="nav-link" href="#products">Products</a>
+                    <a class="nav-link" href="#about">About</a>
+                    <a class="nav-link" href="#testimonials">Testimonials</a>
+                    <a class="nav-link" href="#contact">Contact</a>
+                    <a href="?page=review" class="nav-link">
+                        <i class="bi bi-cart3 me-2"></i>Cart
+                        <?php if ($cart_count > 0): ?>
+                            <span class="badge bg-danger ms-2"><?= $cart_count ?></span>
+                        <?php endif; ?>
+                    </a>
+                </div>
             </div>
         </div>
-    </div>
-</header>
+    </nav>

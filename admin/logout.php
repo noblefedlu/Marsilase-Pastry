@@ -1,10 +1,13 @@
 <?php
-session_start();
+// admin/logout.php
+require_once 'config.php';
 
-// Clear all session variables
-$_SESSION = array();
+// Log logout activity
+if (isset($_SESSION['admin_id'])) {
+    logAdminAction('Logout', 'Admin logged out of the system');
+}
 
-// Destroy the session
+// Destroy all session data
 session_destroy();
 
 // Redirect to login page

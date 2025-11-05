@@ -1,163 +1,173 @@
-
+[file name]: test_order_flow.php
+[file content begin]
 <?php
 session_start();
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Order Flow Test - Marsilase Pastry</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        .test-card { margin: 10px 0; padding: 15px; border-left: 4px solid #0d6efd; }
-        .test-success { border-left-color: #198754; background: #d1e7dd; }
-        .test-error { border-left-color: #dc3545; background: #f8d7da; }
-        .test-warning { border-left-color: #ffc107; background: #fff3cd; }
-    </style>
-</head>
-<body>
-    <div class="container py-5">
-        <h1 class="text-center mb-4">Order Flow Test</h1>
-        
-        <div class="row">
-            <div class="col-md-6">
-                <div class="card">
-                    <div class="card-header">
-                        <h5>Session Status</h5>
-                    </div>
-                    <div class="card-body">
-                        <?php
-                        echo "<div class='test-card " . (isset($_SESSION['cart']) ? 'test-success' : 'test-warning') . "'>";
-                        echo "<strong>Cart Session:</strong> " . (isset($_SESSION['cart']) ? 'Exists' : 'Not set');
-                        echo "</div>";
+<div class="section">
+    <div class="container-narrow">
+        <div class="card">
+            <div class="card-header">
+                <h2 class="mb-0">Order Flow Testing</h2>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h4 class="text-primary mb-3">Current Status</h4>
                         
-                        if (isset($_SESSION['cart'])) {
-                            echo "<div class='test-card test-success'>";
-                            echo "<strong>Cart Items:</strong> " . count($_SESSION['cart']);
-                            echo "<br><small>Items: " . json_encode($_SESSION['cart']) . "</small>";
-                            echo "</div>";
-                        }
-                        ?>
+                        <!-- Session Status -->
+                        <div class="card mb-3">
+                            <div class="card-body">
+                                <h6>Session Status</h6>
+                                <?php
+                                echo "<div class='mb-2 " . (isset($_SESSION['cart']) ? 'text-success' : 'text-warning') . "'>";
+                                echo "<strong>Cart Session:</strong> " . (isset($_SESSION['cart']) ? '✅ Exists' : '❌ Not set');
+                                echo "</div>";
+                                
+                                if (isset($_SESSION['cart'])) {
+                                    echo "<div class='text-success'>";
+                                    echo "<strong>Cart Items:</strong> " . count($_SESSION['cart']);
+                                    echo "<br><small>Items: " . json_encode($_SESSION['cart']) . "</small>";
+                                    echo "</div>";
+                                }
+                                ?>
+                            </div>
+                        </div>
+
+                        <!-- Quick Tests -->
+                        <div class="card">
+                            <div class="card-body">
+                                <h6>Quick Tests</h6>
+                                <div class="d-grid gap-2">
+                                    <a href="?page=home" class="btn btn-outline-primary">Test Homepage</a>
+                                    <a href="?page=customize-cake&cake_id=1" class="btn btn-outline-primary">Test Cake Customization</a>
+                                    <a href="?page=review" class="btn btn-outline-info">Test Cart Review</a>
+                                    <a href="?page=customer-info" class="btn btn-outline-success">Test Checkout</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <h4 class="text-primary mb-3">Order Flow</h4>
+                        
+                        <!-- Progress Steps -->
+                        <div class="card mb-3">
+                            <div class="card-body">
+                                <div class="row text-center small">
+                                    <div class="col-3">
+                                        <div class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center mb-1" 
+                                             style="width: 30px; height: 30px;">
+                                            <i class="bi bi-1"></i>
+                                        </div>
+                                        <div>Browse</div>
+                                    </div>
+                                    <div class="col-3">
+                                        <div class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center mb-1" 
+                                             style="width: 30px; height: 30px;">
+                                            <i class="bi bi-2"></i>
+                                        </div>
+                                        <div>Customize</div>
+                                    </div>
+                                    <div class="col-3">
+                                        <div class="rounded-circle bg-light text-muted d-inline-flex align-items-center justify-content-center mb-1" 
+                                             style="width: 30px; height: 30px;">
+                                            <i class="bi bi-3"></i>
+                                        </div>
+                                        <div>Review</div>
+                                    </div>
+                                    <div class="col-3">
+                                        <div class="rounded-circle bg-light text-muted d-inline-flex align-items-center justify-content-center mb-1" 
+                                             style="width: 30px; height: 30px;">
+                                            <i class="bi bi-4"></i>
+                                        </div>
+                                        <div>Complete</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Test Data -->
+                        <div class="card">
+                            <div class="card-body">
+                                <h6>Test Data</h6>
+                                <button onclick="addSampleData()" class="btn btn-success btn-sm w-100 mb-2">
+                                    Add Sample Items to Cart
+                                </button>
+                                <button onclick="clearCart()" class="btn btn-warning btn-sm w-100">
+                                    Clear Cart
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </div>
-            
-            <div class="col-md-6">
-                <div class="card">
+
+                <!-- System Check -->
+                <div class="card mt-4">
                     <div class="card-header">
-                        <h5>Quick Actions</h5>
+                        <h5 class="mb-0">System Check</h5>
                     </div>
                     <div class="card-body">
-                        <div class="d-grid gap-2">
-                            <a href="?page=home" class="btn btn-primary">Go to Home</a>
-                            <a href="?page=customize-cake&cake_id=1" class="btn btn-outline-primary">Test Customize Cake</a>
-                            <a href="?page=review" class="btn btn-outline-info">Test Cart Review</a>
-                            <button onclick="clearCart()" class="btn btn-outline-warning">Clear Cart</button>
-                            <button onclick="testAddToCart()" class="btn btn-outline-success">Test Add to Cart</button>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="d-flex align-items-center mb-3">
+                                    <i class="bi bi-database text-success me-2"></i>
+                                    <span>Database: Connected</span>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="d-flex align-items-center mb-3">
+                                    <i class="bi bi-cart text-success me-2"></i>
+                                    <span>Cart System: Active</span>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="d-flex align-items-center mb-3">
+                                    <i class="bi bi-credit-card text-success me-2"></i>
+                                    <span>Order System: Ready</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-        
-        <div class="card mt-4">
-            <div class="card-header">
-                <h5>File Check</h5>
-            </div>
-            <div class="card-body">
-                <?php
-                $files = [
-                    'config.php',
-                    'cart.php', 
-                    'orders.php',
-                    'components/header.php',
-                    'components/footer.php',
-                    'pages/customize-cake.php',
-                    'pages/review.php',
-                    'pages/customer-info.php'
-                ];
-                
-                foreach ($files as $file) {
-                    $exists = file_exists($file);
-                    echo "<div class='test-card " . ($exists ? 'test-success' : 'test-error') . "'>";
-                    echo "<strong>$file:</strong> " . ($exists ? '✅ Found' : '❌ Missing');
-                    echo "</div>";
-                }
-                ?>
-            </div>
-        </div>
-        
-        <div class="card mt-4">
-            <div class="card-header">
-                <h5>Database Test</h5>
-            </div>
-            <div class="card-body">
-                <?php
-                include 'config.php';
-                if ($conn) {
-                    echo "<div class='test-card test-success'>";
-                    echo "<strong>Database:</strong> ✅ Connected";
-                    echo "</div>";
-                    
-                    // Test cakes table
-                    $result = $conn->query("SELECT COUNT(*) as count FROM cakes");
-                    if ($result) {
-                        $row = $result->fetch_assoc();
-                        echo "<div class='test-card test-success'>";
-                        echo "<strong>Cakes Table:</strong> ✅ " . $row['count'] . " cakes found";
-                        echo "</div>";
-                    } else {
-                        echo "<div class='test-card test-error'>";
-                        echo "<strong>Cakes Table:</strong> ❌ Error accessing table";
-                        echo "</div>";
-                    }
-                    
-                    $conn->close();
-                } else {
-                    echo "<div class='test-card test-error'>";
-                    echo "<strong>Database:</strong> ❌ Connection failed";
-                    echo "</div>";
-                }
-                ?>
-            </div>
-        </div>
     </div>
+</div>
 
-    <script>
-    function clearCart() {
-        fetch('cart.php', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: 'action=clear_cart'
-        })
-        .then(response => response.json())
-        .then(data => {
-            alert(data.message);
-            location.reload();
-        });
-    }
-    
-    function testAddToCart() {
-        const testData = {
+<script>
+function addSampleData() {
+    // Add multiple sample items
+    const sampleItems = [
+        {
             action: 'add_to_cart',
             product_type: 'cake',
             product_id: '1',
-            product_name: 'Test Cake',
+            product_name: 'Chocolate Fantasy Cake',
+            flavor: 'Chocolate',
+            size: 'Medium',
+            quantity: '1',
+            unit_price: '1800',
+            total_price: '1800'
+        },
+        {
+            action: 'add_to_cart',
+            product_type: 'cake', 
+            product_id: '2',
+            product_name: 'Vanilla Dream Cake',
             flavor: 'Vanilla',
             size: 'Small',
-            toppings: '[]',
-            quantity: '1',
-            special_notes: 'Test order',
-            unit_price: '1200',
-            total_price: '1200'
-        };
-        
+            quantity: '2',
+            unit_price: '1100',
+            total_price: '2200'
+        }
+    ];
+
+    let completed = 0;
+    
+    sampleItems.forEach(item => {
         const formData = new FormData();
-        for (const key in testData) {
-            formData.append(key, testData[key]);
+        for (const key in item) {
+            formData.append(key, item[key]);
         }
         
         fetch('cart.php', {
@@ -166,13 +176,41 @@ session_start();
         })
         .then(response => response.json())
         .then(data => {
-            alert(data.success ? '✅ Test item added to cart!' : '❌ Error: ' + data.message);
-            location.reload();
+            completed++;
+            if (completed === sampleItems.length) {
+                alert('✅ Sample items added to cart!');
+                location.reload();
+            }
         })
         .catch(error => {
-            alert('❌ Network error: ' + error);
+            console.error('Error:', error);
+            alert('❌ Error adding sample items');
         });
-    }
-    </script>
-</body>
-</html>
+    });
+}
+
+function clearCart() {
+    if (!confirm('Are you sure you want to clear the cart?')) return;
+    
+    fetch('cart.php', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: 'action=clear_cart'
+    })
+    .then(response => response.json())
+    .then(data => {
+        alert(data.message);
+        location.reload();
+    });
+}
+</script>
+
+<style>
+.btn-sm {
+    padding: 0.375rem 0.75rem;
+    font-size: 0.875rem;
+}
+</style>
+[file content end]

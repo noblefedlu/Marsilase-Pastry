@@ -1,51 +1,77 @@
 <?php
 session_start();
-include '../config.php';
 
-// Redirect to login if not logged in
+// Define the root directory and config path
+$root_dir = dirname(dirname(__FILE__));
+$config_path = $root_dir . '/config.php';
+
+// Check if config file exists before requiring it
+if (!file_exists($config_path)) {
+    die("Configuration file not found. Please check if config.php exists in the root directory.");
+}
+
+require_once $config_path;
+
+// Check database connection
+if (!$conn) {
+    die("Database connection failed: " . $conn->connect_error);
+}
+
+// Check admin authentication
 if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
-    header('Location: login.php');
+    header('Location: ../?page=admin-login');
     exit;
 }
 
+$message = '';
 $error = '';
-$success = '';
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $current_password = $_POST['current_password'] ?? '';
-    $new_password = $_POST['new_password'] ?? '';
-    $confirm_password = $_POST['confirm_password'] ?? '';
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'change_password') {
+    $current_password = trim($_POST['current_password'] ?? '');
+    $new_password = trim($_POST['new_password'] ?? '');
+    $confirm_password = trim($_POST['confirm_password'] ?? '');
     
+    // Validate inputs
     if (empty($current_password) || empty($new_password) || empty($confirm_password)) {
-        $error = 'All fields are required';
+        $error = "❌ Please fill in all password fields.";
     } elseif ($new_password !== $confirm_password) {
-        $error = 'New passwords do not match';
+        $error = "❌ New passwords do not match!";
     } elseif (strlen($new_password) < 6) {
-        $error = 'New password must be at least 6 characters long';
+        $error = "❌ New password must be at least 6 characters long!";
     } else {
         // Verify current password
         $stmt = $conn->prepare("SELECT password_hash FROM admins WHERE id = ?");
-        $stmt->bind_param("i", $_SESSION['admin_id']);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        $admin = $result->fetch_assoc();
-        
-        if (password_verify($current_password, $admin['password_hash'])) {
-            // Update password
-            $new_password_hash = password_hash($new_password, PASSWORD_DEFAULT);
-            $update_stmt = $conn->prepare("UPDATE admins SET password_hash = ? WHERE id = ?");
-            $update_stmt->bind_param("si", $new_password_hash, $_SESSION['admin_id']);
+        if ($stmt) {
+            $stmt->bind_param("i", $_SESSION['admin_id']);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            $admin = $result->fetch_assoc();
+            $stmt->close();
             
-            if ($update_stmt->execute()) {
-                $success = 'Password changed successfully!';
+            if ($admin && password_verify($current_password, $admin['password_hash'])) {
+                // Update password
+                $new_password_hash = password_hash($new_password, PASSWORD_DEFAULT);
+                $stmt = $conn->prepare("UPDATE admins SET password_hash = ?, updated_at = NOW() WHERE id = ?");
+                if ($stmt) {
+                    $stmt->bind_param("si", $new_password_hash, $_SESSION['admin_id']);
+                    
+                    if ($stmt->execute()) {
+                        $message = "✅ Password changed successfully!";
+                        // Clear form
+                        $_POST = array();
+                    } else {
+                        $error = "❌ Failed to change password. Please try again.";
+                    }
+                    $stmt->close();
+                } else {
+                    $error = "❌ Database error: " . $conn->error;
+                }
             } else {
-                $error = 'Failed to change password. Please try again.';
+                $error = "❌ Current password is incorrect!";
             }
-            $update_stmt->close();
         } else {
-            $error = 'Current password is incorrect';
+            $error = "❌ Database error: " . $conn->error;
         }
-        $stmt->close();
     }
 }
 ?>
@@ -58,193 +84,246 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
     <style>
+        :root {
+            --cream: #FFF5E1;
+            --orange: #FF914D;
+            --white: #FFFFFF;
+            --brown: #3A2E1F;
+            --light-orange: #FFE8D6;
+            --glass-bg: rgba(255, 255, 255, 0.25);
+            --glass-border: rgba(255, 255, 255, 0.18);
+        }
+        
         body {
-            background: #f8f9fa;
+            background: var(--cream);
+            color: var(--brown);
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
         
-        .navbar {
-            background: #8B4513;
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
         }
         
-        .navbar-brand {
-            color: white;
-            font-weight: 600;
-        }
-        
-        .change-password-container {
-            max-width: 500px;
-            margin: 2rem auto;
-            padding: 20px;
-        }
-        
-        .change-password-card {
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        .security-card {
+            background: linear-gradient(135deg, var(--white) 0%, var(--light-orange) 100%);
+            border-radius: 16px;
             padding: 2rem;
-        }
-        
-        .form-control {
-            padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            margin-bottom: 1rem;
-        }
-        
-        .form-control:focus {
-            border-color: #8B4513;
-            box-shadow: 0 0 0 2px rgba(139, 69, 19, 0.1);
+            border: none;
         }
         
         .btn-primary {
-            background: #8B4513;
+            background: var(--orange);
             border: none;
-            padding: 12px;
-            border-radius: 6px;
-            width: 100%;
-            font-weight: 500;
+            border-radius: 12px;
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
         }
         
         .btn-primary:hover {
-            background: #654321;
+            background: #E5813D;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 145, 77, 0.4);
         }
         
-        .password-container {
-            position: relative;
+        .form-control {
+            border-radius: 12px;
+            padding: 0.75rem 1rem;
+            border: 2px solid #e9ecef;
+            transition: all 0.3s ease;
         }
         
-        .password-toggle {
-            position: absolute;
-            right: 12px;
-            top: 50%;
-            transform: translateY(-50%);
-            background: none;
-            border: none;
-            color: #666;
-            cursor: pointer;
-            padding: 0;
-            width: 20px;
-            height: 20px;
+        .form-control:focus {
+            border-color: var(--orange);
+            box-shadow: 0 0 0 0.2rem rgba(255, 145, 77, 0.25);
+        }
+        
+        .password-strength {
+            height: 4px;
+            border-radius: 2px;
+            margin-top: 0.5rem;
+            transition: all 0.3s ease;
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.6s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .security-icon {
+            width: 80px;
+            height: 80px;
+            background: var(--orange);
+            border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-        }
-        
-        .password-toggle:hover {
-            color: #8B4513;
-        }
-        
-        .alert {
-            border-radius: 6px;
-            margin-bottom: 1rem;
-        }
-        
-        .nav-link {
-            color: white !important;
-        }
-        
-        .nav-link:hover {
-            color: #f8f9fa !important;
+            margin: 0 auto 1.5rem;
+            color: white;
+            font-size: 2rem;
         }
     </style>
 </head>
 <body>
-    <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg">
-        <div class="container">
-            <span class="navbar-brand">
-                <i class="bi bi-shield-lock me-2"></i>Change Password
-            </span>
-            <div class="navbar-nav ms-auto">
-                <a href="index.php" class="nav-link me-3">
-                    <i class="bi bi-arrow-left me-1"></i>Back to Dashboard
-                </a>
-                <a href="logout.php" class="nav-link">
-                    <i class="bi bi-box-arrow-right me-1"></i>Logout
-                </a>
-            </div>
-        </div>
-    </nav>
-
-    <div class="container">
-        <div class="change-password-container">
-            <div class="change-password-card">
-                <h3 class="text-center mb-4">Change Password</h3>
-
-                <?php if ($error): ?>
-                <div class="alert alert-danger">
-                    <i class="bi bi-exclamation-triangle me-2"></i>
-                    <?= htmlspecialchars($error) ?>
+    <div class="container-fluid">
+        <div class="row">
+            <?php include 'sidebar.php'; ?>
+            
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h1 class="h2 mb-1">Change Password</h1>
+                        <p class="text-muted mb-0">Update your account password</p>
+                    </div>
                 </div>
-                <?php endif; ?>
 
-                <?php if ($success): ?>
-                <div class="alert alert-success">
-                    <i class="bi bi-check-circle me-2"></i>
-                    <?= htmlspecialchars($success) ?>
+                <div class="row justify-content-center">
+                    <div class="col-lg-6">
+                        <div class="security-card fade-in">
+                            <div class="security-icon">
+                                <i class="bi bi-shield-lock"></i>
+                            </div>
+                            
+                            <h4 class="text-center mb-4">Update Your Password</h4>
+
+                            <?php if (!empty($message)): ?>
+                                <div class="alert alert-success glass-card border-0 mb-4">
+                                    <i class="bi bi-check-circle me-2"></i>
+                                    <?= $message ?>
+                                </div>
+                            <?php endif; ?>
+                            
+                            <?php if (!empty($error)): ?>
+                                <div class="alert alert-danger glass-card border-0 mb-4">
+                                    <i class="bi bi-exclamation-triangle me-2"></i>
+                                    <?= $error ?>
+                                </div>
+                            <?php endif; ?>
+
+                            <form method="POST">
+                                <input type="hidden" name="action" value="change_password">
+                                
+                                <div class="mb-4">
+                                    <label class="form-label">Current Password</label>
+                                    <input type="password" class="form-control" name="current_password" required
+                                           placeholder="Enter your current password">
+                                </div>
+                                
+                                <div class="mb-4">
+                                    <label class="form-label">New Password</label>
+                                    <input type="password" class="form-control" name="new_password" required
+                                           placeholder="Enter new password" minlength="6"
+                                           id="newPassword">
+                                    <div class="form-text">Minimum 6 characters</div>
+                                    <div class="password-strength" id="passwordStrength"></div>
+                                </div>
+                                
+                                <div class="mb-4">
+                                    <label class="form-label">Confirm New Password</label>
+                                    <input type="password" class="form-control" name="confirm_password" required
+                                           placeholder="Confirm new password"
+                                           id="confirmPassword">
+                                    <div class="form-text" id="passwordMatch"></div>
+                                </div>
+                                
+                                <button type="submit" class="btn btn-primary w-100 py-2">
+                                    <i class="bi bi-key me-2"></i>
+                                    Change Password
+                                </button>
+                            </form>
+                            
+                            <div class="mt-4 pt-3 border-top">
+                                <h6 class="text-muted mb-3">Password Requirements:</h6>
+                                <ul class="list-unstyled small text-muted">
+                                    <li><i class="bi bi-check-circle text-success me-2"></i> Minimum 6 characters</li>
+                                    <li><i class="bi bi-check-circle text-success me-2"></i> Should be different from current password</li>
+                                    <li><i class="bi bi-check-circle text-success me-2"></i> Use a combination of letters and numbers</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <?php endif; ?>
-
-                <form method="POST" id="changePasswordForm">
-                    <div class="mb-3 password-container">
-                        <input type="password" class="form-control" id="currentPassword" name="current_password" placeholder="Current Password" required>
-                        <button type="button" class="password-toggle" data-target="currentPassword">
-                            <i class="bi bi-eye"></i>
-                        </button>
-                    </div>
-
-                    <div class="mb-3 password-container">
-                        <input type="password" class="form-control" id="newPassword" name="new_password" placeholder="New Password" required>
-                        <button type="button" class="password-toggle" data-target="newPassword">
-                            <i class="bi bi-eye"></i>
-                        </button>
-                    </div>
-
-                    <div class="mb-3 password-container">
-                        <input type="password" class="form-control" id="confirmPassword" name="confirm_password" placeholder="Confirm New Password" required>
-                        <button type="button" class="password-toggle" data-target="confirmPassword">
-                            <i class="bi bi-eye"></i>
-                        </button>
-                    </div>
-
-                    <button type="submit" class="btn btn-primary">
-                        <i class="bi bi-key me-2"></i>Change Password
-                    </button>
-                </form>
-            </div>
+            </main>
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Password toggle functionality
-            document.querySelectorAll('.password-toggle').forEach(toggle => {
-                toggle.addEventListener('click', function() {
-                    const targetId = this.getAttribute('data-target');
-                    const input = document.getElementById(targetId);
-                    const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
-                    input.setAttribute('type', type);
-                    
-                    // Toggle eye icon
-                    if (type === 'password') {
-                        this.innerHTML = '<i class="bi bi-eye"></i>';
-                    } else {
-                        this.innerHTML = '<i class="bi bi-eye-slash"></i>';
-                    }
-                });
-            });
+            const newPassword = document.getElementById('newPassword');
+            const confirmPassword = document.getElementById('confirmPassword');
+            const passwordStrength = document.getElementById('passwordStrength');
+            const passwordMatch = document.getElementById('passwordMatch');
             
-            // Clear form on success
-            <?php if ($success): ?>
-            document.getElementById('changePasswordForm').reset();
-            <?php endif; ?>
+            function checkPasswordStrength(password) {
+                let strength = 0;
+                if (password.length >= 6) strength += 25;
+                if (password.length >= 8) strength += 25;
+                if (/[A-Z]/.test(password)) strength += 25;
+                if (/[0-9]/.test(password)) strength += 25;
+                
+                return strength;
+            }
+            
+            function updatePasswordStrength() {
+                const password = newPassword.value;
+                const strength = checkPasswordStrength(password);
+                
+                let color = '#dc3545'; // red
+                let text = 'Weak';
+                
+                if (strength >= 50) {
+                    color = '#ffc107'; // yellow
+                    text = 'Medium';
+                }
+                if (strength >= 75) {
+                    color = '#198754'; // green
+                    text = 'Strong';
+                }
+                
+                passwordStrength.style.background = color;
+                passwordStrength.style.width = strength + '%';
+                
+                if (password.length > 0) {
+                    passwordStrength.parentElement.querySelector('.form-text').textContent = text;
+                }
+            }
+            
+            function checkPasswordMatch() {
+                const newPass = newPassword.value;
+                const confirmPass = confirmPassword.value;
+                
+                if (confirmPass.length === 0) {
+                    passwordMatch.textContent = '';
+                    passwordMatch.className = 'form-text';
+                } else if (newPass === confirmPass) {
+                    passwordMatch.innerHTML = '<i class="bi bi-check-circle text-success me-1"></i> Passwords match';
+                    passwordMatch.className = 'form-text text-success';
+                } else {
+                    passwordMatch.innerHTML = '<i class="bi bi-x-circle text-danger me-1"></i> Passwords do not match';
+                    passwordMatch.className = 'form-text text-danger';
+                }
+            }
+            
+            newPassword.addEventListener('input', updatePasswordStrength);
+            newPassword.addEventListener('input', checkPasswordMatch);
+            confirmPassword.addEventListener('input', checkPasswordMatch);
         });
     </script>
 </body>
 </html>
 <?php 
+// Close connection only if it exists and is valid
 if (isset($conn) && $conn) {
-    $conn->close(); 
+    $conn->close();
 }
 ?>
