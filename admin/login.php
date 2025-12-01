@@ -1,113 +1,59 @@
 <?php
-// admin/login.php
 session_start();
+include '../config.php';
 
-// Define database credentials directly
-$db_config = [
-    'servername' => 'localhost',
-    'username' => 'root',
-    'password' => '',
-    'dbname' => 'marsilase_pastry'
-];
-
-// Create database connection
-$conn = new mysqli(
-    $db_config['servername'],
-    $db_config['username'], 
-    $db_config['password'],
-    $db_config['dbname']
-);
-
-// Check connection
-if ($conn->connect_error) {
-    die("Database connection failed: " . $conn->connect_error);
-}
-
-// Check if already logged in
-if (isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'] === true) {
-    header('Location: dashboard.php');
+// Redirect if already logged in as admin
+if (isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'] === true && $_SESSION['admin_role'] === 'admin') {
+    header('Location: index.php');
     exit;
 }
 
-$error_message = '';
+// Clear any existing session when accessing admin login
+session_destroy();
+session_start();
 
-// Handle login
+$error = '';
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $username = trim($_POST['username']);
-    $password = $_POST['password'];
+    $username = trim($_POST['username'] ?? '');
+    $password = $_POST['password'] ?? '';
     
-    // Check if connection is valid
-    if (!$conn) {
-        $error_message = "Database connection failed!";
+    if (empty($username) || empty($password)) {
+        $error = 'Please enter both username and password';
     } else {
-        // Use the correct table name 'admin_users' from your SQL
-        $stmt = $conn->prepare("SELECT * FROM admin_users WHERE username = ? AND is_active = 1");
+        $stmt = $conn->prepare("SELECT id, username, password_hash, full_name, role, is_active FROM admins WHERE username = ? AND role = 'admin'");
         
-        // Check if prepare was successful
-        if ($stmt === false) {
-            $error_message = "Database error: " . $conn->error;
-        } else {
+        if ($stmt) {
             $stmt->bind_param("s", $username);
+            $stmt->execute();
+            $result = $stmt->get_result();
             
-            if ($stmt->execute()) {
-                $result = $stmt->get_result();
+            if ($result->num_rows === 1) {
+                $admin = $result->fetch_assoc();
                 
-                if ($result->num_rows === 1) {
-                    $admin = $result->fetch_assoc();
+                if ($admin['is_active'] && password_verify($password, $admin['password_hash'])) {
+                    // Successful login
+                    $_SESSION['admin_logged_in'] = true;
+                    $_SESSION['admin_id'] = $admin['id'];
+                    $_SESSION['admin_username'] = $admin['username'];
+                    $_SESSION['admin_full_name'] = $admin['full_name'];
+                    $_SESSION['admin_role'] = $admin['role'];
                     
-                    // Verify password - using password_hash column from your SQL
-                    if (password_verify($password, $admin['password_hash'])) {
-                        $_SESSION['admin_logged_in'] = true;
-                        $_SESSION['admin_id'] = $admin['id'];
-                        $_SESSION['admin_name'] = $admin['full_name'];
-                        $_SESSION['admin_username'] = $admin['username'];
-                        $_SESSION['admin_email'] = $admin['email'];
-                        $_SESSION['admin_role'] = $admin['role'];
-                        
-                        // Update last login
-                        $update_stmt = $conn->prepare("UPDATE admin_users SET last_login = NOW() WHERE id = ?");
-                        if ($update_stmt) {
-                            $update_stmt->bind_param("i", $admin['id']);
-                            $update_stmt->execute();
-                            $update_stmt->close();
-                        }
-                        
-                        // Log login activity
-                        logAdminAction($conn, $admin['id'], 'Login', 'Admin logged into the system');
-                        
-                        header('Location: dashboard.php');
-                        exit;
-                    }
+                    header('Location: index.php');
+                    exit;
+                } else {
+                    $error = 'Invalid credentials or account inactive';
                 }
-                
-                $error_message = "Invalid username or password!";
-                logAdminAction($conn, null, 'Failed Login Attempt', "Failed login attempt for username: $username");
             } else {
-                $error_message = "Login failed. Please try again.";
+                $error = 'Invalid admin credentials - Contact owner to create an account';
             }
-            
             $stmt->close();
+        } else {
+            $error = 'Database error';
         }
     }
 }
-
-// Function to log admin actions
-function logAdminAction($conn, $admin_id, $action, $description) {
-    $stmt = $conn->prepare("INSERT INTO admin_logs (admin_id, action, description, ip_address) VALUES (?, ?, ?, ?)");
-    if ($stmt) {
-        $ip_address = $_SERVER['REMOTE_ADDR'];
-        $stmt->bind_param("isss", $admin_id, $action, $description, $ip_address);
-        $stmt->execute();
-        $stmt->close();
-    }
-}
-
-// Simple sanitize function
-function sanitizeInput($data) {
-    return htmlspecialchars(strip_tags(trim($data)));
-}
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -117,146 +63,205 @@ function sanitizeInput($data) {
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
     <style>
-        .login-container {
-            min-height: 100vh;
-            background: linear-gradient(135deg, #f56e10 0%, #f8fafc 100%);
+        body {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
+        }
+        
+        .login-container {
+            width: 100%;
+            max-width: 400px;
             padding: 20px;
         }
         
         .login-card {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(20px);
-            border-radius: 1rem;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
             padding: 2.5rem;
-            width: 100%;
-            max-width: 400px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            border: none;
         }
         
-        .brand-logo {
+        .login-header {
             text-align: center;
             margin-bottom: 2rem;
         }
         
-        .brand-logo i {
-            font-size: 3rem;
-            color: #f56e10;
+        .login-icon {
+            font-size: 3.5rem;
+            color: #3498db;
             margin-bottom: 1rem;
         }
         
+        .login-title {
+            color: #2c3e50;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            font-size: 1.8rem;
+        }
+        
+        .login-subtitle {
+            color: #7f8c8d;
+            font-size: 0.9rem;
+        }
+        
         .form-control {
-            border-radius: 0.75rem;
-            padding: 0.75rem 1rem;
-            border: 1px solid #e2e8f0;
-            transition: all 0.3s;
+            padding: 12px 15px;
+            border: 2px solid #ecf0f1;
+            border-radius: 8px;
+            margin-bottom: 1.2rem;
+            font-size: 1rem;
+            transition: all 0.3s ease;
         }
         
         .form-control:focus {
-            border-color: #f56e10;
-            box-shadow: 0 0 0 3px rgba(245, 110, 16, 0.1);
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
         }
         
-        .btn-primary {
-            background: linear-gradient(135deg, #f56e10 0%, #e7540a 100%);
+        .btn-login {
+            background: #3498db;
+            color: white;
+            padding: 12px;
             border: none;
-            border-radius: 0.75rem;
-            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            width: 100%;
             font-weight: 600;
-            transition: all 0.3s;
+            font-size: 1rem;
+            transition: all 0.3s ease;
         }
         
-        .btn-primary:hover {
+        .btn-login:hover {
+            background: #2980b9;
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(245, 110, 16, 0.3);
         }
         
-        .register-link {
-            color: #f56e10;
+        .access-links {
+            text-align: center;
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #ecf0f1;
+        }
+        
+        .access-links a {
+            color: #2c3e50;
             text-decoration: none;
-            font-weight: 500;
+            font-size: 0.9rem;
         }
         
-        .register-link:hover {
-            color: #e7540a;
+        .access-links a:hover {
             text-decoration: underline;
+        }
+        
+        .password-container {
+            position: relative;
+        }
+        
+        .password-toggle {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #7f8c8d;
+            cursor: pointer;
+        }
+        
+        .alert {
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+        }
+        
+        .admin-badge {
+            background: #3498db;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
         }
     </style>
 </head>
 <body>
     <div class="login-container">
         <div class="login-card">
-            <div class="brand-logo">
-                <i class="bi bi-cake2"></i>
-                <h3 class="fw-bold">Marsilase Pastry</h3>
-                <p class="text-muted">Admin Panel</p>
+            <div class="login-header">
+                <div class="login-icon">
+                    <i class="bi bi-person-gear"></i>
+                </div>
+                <h2 class="login-title">Admin Access</h2>
+                <p class="login-subtitle">Order management panel</p>
+                <span class="admin-badge">ADMIN PORTAL</span>
             </div>
-            
-            <?php if ($error_message): ?>
-            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+
+            <?php if ($error): ?>
+            <div class="alert alert-danger">
                 <i class="bi bi-exclamation-triangle me-2"></i>
-                <?= htmlspecialchars($error_message) ?>
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                <?= htmlspecialchars($error) ?>
             </div>
             <?php endif; ?>
-            
+
             <form method="POST" id="loginForm">
                 <div class="mb-3">
-                    <label for="username" class="form-label fw-semibold">Username</label>
-                    <div class="input-group">
-                        <span class="input-group-text bg-light border-end-0">
-                            <i class="bi bi-person text-muted"></i>
-                        </span>
-                        <input type="text" class="form-control border-start-0" id="username" name="username" required 
-                               placeholder="Enter your username" value="<?= isset($_POST['username']) ? htmlspecialchars($_POST['username']) : '' ?>">
-                    </div>
+                    <input type="text" class="form-control" name="username" placeholder="Admin Username" required autofocus>
                 </div>
-                
-                <div class="mb-4">
-                    <label for="password" class="form-label fw-semibold">Password</label>
-                    <div class="input-group">
-                        <span class="input-group-text bg-light border-end-0">
-                            <i class="bi bi-lock text-muted"></i>
-                        </span>
-                        <input type="password" class="form-control border-start-0" id="password" name="password" required 
-                               placeholder="Enter your password">
-                    </div>
+
+                <div class="mb-3 password-container">
+                    <input type="password" class="form-control" id="password" name="password" placeholder="Password" required>
+                    <button type="button" class="password-toggle" id="passwordToggle">
+                        <i class="bi bi-eye"></i>
+                    </button>
                 </div>
-                
-                <div class="mb-3 form-check">
-                    <input type="checkbox" class="form-check-input" id="remember">
-                    <label class="form-check-label" for="remember">Remember me</label>
-                </div>
-                
-                <button type="submit" class="btn btn-primary w-100 py-2 fw-semibold">
-                    <i class="bi bi-box-arrow-in-right me-2"></i>Sign In
+
+                <button type="submit" class="btn btn-login">
+                    <i class="bi bi-person-gear me-2"></i>Access Admin Panel
                 </button>
             </form>
-            
-            <div class="text-center mt-4">
-                <a href="admin-register.php" class="register-link">
-                    <i class="bi bi-person-plus me-1"></i>Create Admin Account
+
+            <!-- <div class="access-links">
+                <p class="text-muted mb-2">Need different access?</p>
+                <a href="../owner/login.php">
+                    <i class="bi bi-shield-lock me-1"></i>Go to Owner Login
                 </a>
-            </div>
-            
-            <div class="text-center mt-2">
-                <small class="text-muted">
-                    Default: admin / admin123
-                </small>
-            </div>
+                <br>
+                <a href="register.php" class="mt-2 d-inline-block">
+                    <i class="bi bi-person-plus me-1"></i>Register New Owner
+                </a>
+            </div> -->
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        document.getElementById('loginForm').addEventListener('submit', function(e) {
-            const submitBtn = this.querySelector('button[type="submit"]');
-            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Signing in...';
-            submitBtn.disabled = true;
+        document.addEventListener('DOMContentLoaded', function() {
+            // Password toggle functionality
+            const passwordToggle = document.getElementById('passwordToggle');
+            const passwordInput = document.getElementById('password');
+            
+            passwordToggle.addEventListener('click', function() {
+                const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+                passwordInput.setAttribute('type', type);
+                
+                // Toggle eye icon
+                if (type === 'password') {
+                    this.innerHTML = '<i class="bi bi-eye"></i>';
+                } else {
+                    this.innerHTML = '<i class="bi bi-eye-slash"></i>';
+                }
+            });
+            
+            // Clear form on load
+            document.getElementById('loginForm').reset();
         });
     </script>
 </body>
 </html>
+<?php 
+if (isset($conn) && $conn) {
+    $conn->close(); 
+}
+?>

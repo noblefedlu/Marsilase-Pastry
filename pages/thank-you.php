@@ -1,3 +1,5 @@
+[file name]: thank-you.php
+[file content begin]
 <?php
 // pages/thank-you.php
 session_start();
@@ -103,6 +105,25 @@ if (empty($order_id) || empty($order)) {
 }
 ?>
 
+<style>
+.bg-light {
+    background: var(--neutral-100) !important;
+    color: var(--text-dark) !important;
+}
+
+.bg-light p, .bg-light strong {
+    color: var(--text-dark) !important;
+}
+
+.text-muted {
+    color: var(--text-muted) !important;
+}
+
+.badge {
+    background: var(--primary-100) !important;
+}
+</style>
+
 <div class="section">
     <div class="container-narrow text-center">
         <div class="card">
@@ -150,20 +171,9 @@ if (empty($order_id) || empty($order)) {
                     </div>
                 </div>
 
-                <!-- <div class="mb-4">
-                    <p class="text-muted">
-                        We've sent a confirmation email to <strong><?= htmlspecialchars($order['customer_info']['email']) ?></strong><br>
-                        You'll receive updates about your order status.
-                    </p>
-                </div> -->
-
                 <div class="d-flex gap-3 justify-content-center">
-                    <!-- <a href="?page=home" class="btn btn-outline-primary">
+                    <a href="?page=home" class="btn btn-primary">
                         <i class="bi bi-house me-2"></i>
-                        Back to Home
-                    </a> -->
-                    <a href="?page=track-order&order_id=<?= $order_id ?>" class="btn btn-primary">
-                        <i class="bi bi-clock-history me-2"></i>
                         Back to Home
                     </a>
                 </div>

@@ -1,5 +1,25 @@
-[file name]: pages/customer-info.php
+[file name]: customer-info.php
 [file content begin]
+<style>
+.bg-light {
+    background: var(--neutral-100) !important;
+    color: var(--text-dark) !important;
+}
+
+.bg-light .text-muted {
+    color: var(--text-muted) !important;
+}
+
+.rounded-circle.bg-primary {
+    background: var(--primary-100) !important;
+}
+
+.rounded-circle.bg-light {
+    background: var(--neutral-200) !important;
+    color: var(--text-muted) !important;
+}
+</style>
+
 <div class="section">
     <div class="container-narrow">
         <!-- Progress Steps -->
@@ -63,12 +83,6 @@
                                         <label class="form-label fw-semibold">Phone Number *</label>
                                         <input type="tel" class="form-control" name="customer_phone" required 
                                                placeholder="Enter your phone number">
-                                    </div>
-                                    <div class="col-12">
-                                        <label class="form-label fw-semibold">Email Address *</label>
-                                        <input type="email" class="form-control" name="customer_email" required 
-                                               placeholder="Enter your email address">
-                                        <div class="form-text">We'll send order confirmation to this email</div>
                                     </div>
                                 </div>
                             </div>
@@ -208,39 +222,55 @@ function submitOrder() {
     const formData = new FormData(form);
     formData.append('action', 'submit_order');
     
+    console.log('Submitting order...');
+    
     fetch('orders.php', {
         method: 'POST',
         body: formData
     })
     .then(response => {
+        console.log('Response status:', response.status);
+        console.log('Response OK:', response.ok);
+        
         return response.text().then(text => {
+            console.log('Raw response:', text);
+            
+            // Try to parse as JSON
             try {
                 const data = JSON.parse(text);
                 return { ok: response.ok, data: data };
             } catch (e) {
-                console.error('Raw response:', text);
-                throw new Error('Server returned invalid JSON. Response: ' + text.substring(0, 100));
+                console.error('JSON parse failed:', e);
+                // If it's not JSON, check for common error patterns
+                if (text.includes('error') || text.includes('Error') || text.includes('exception')) {
+                    throw new Error('Server error detected: ' + text.substring(0, 100));
+                } else if (text.includes('cart') && text.includes('empty')) {
+                    throw new Error('Your cart is empty. Please add items to cart first.');
+                } else {
+                    throw new Error('Unexpected server response. Please try again.');
+                }
             }
         });
     })
     .then(({ ok, data }) => {
+        console.log('Parsed response data:', data);
+        
         if (!ok) {
-            throw new Error(data.message || `HTTP error! status: ${ok}`);
+            throw new Error(data.message || `Server error: ${ok}`);
         }
         
-        console.log('Order response:', data);
         if (data.success) {
+            console.log('Order successful, redirecting...');
             window.location.href = '?page=thank-you&order_id=' + data.order_id;
         } else {
-            throw new Error(data.message || 'Unknown error occurred');
+            throw new Error(data.message || 'Order failed for unknown reason');
         }
     })
     .catch(error => {
-        console.error('Error:', error);
+        console.error('Order submission error:', error);
         alert('Error submitting order: ' + error.message);
         submitBtn.innerHTML = originalText;
         submitBtn.disabled = false;
     });
 }
 </script>
-[file content end]

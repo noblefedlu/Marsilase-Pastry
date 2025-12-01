@@ -1,3 +1,5 @@
+[file name]: customize-cake.php
+[file content begin]
 <?php
 $cake_id = $_GET['cake_id'] ?? '';
 $cake = null;
@@ -342,13 +344,23 @@ function addToCart() {
                 updateCartCount(data.cart_count);
             }
             
-            // Redirect to cart page after a short delay
-            setTimeout(() => {
-                window.location.href = '?page=review';
-            }, 1500);
+            // Test if cart is actually saved by checking immediately
+            return fetch('cart.php', {
+                method: 'POST',
+                body: new URLSearchParams({ action: 'get_cart' })
+            });
         } else {
             throw new Error(data.message || 'Unknown error occurred');
         }
+    })
+    .then(response => response.json())
+    .then(cartData => {
+        console.log('Cart verification:', cartData);
+        
+        // Redirect to cart page after a short delay
+        setTimeout(() => {
+            window.location.href = '?page=review';
+        }, 1500);
     })
     .catch(error => {
         console.error('Error adding to cart:', error);
@@ -395,6 +407,9 @@ function showToast(message, type = 'info') {
 .size-option {
     cursor: pointer;
     transition: all 0.2s ease;
+    background: white;
+    color: var(--text-dark);
+    border: 1px solid var(--neutral-200);
 }
 
 .size-option:hover {
@@ -403,12 +418,63 @@ function showToast(message, type = 'info') {
 }
 
 .size-option.border-primary {
-    border-color: var(--primary-500) !important;
+    border-color: var(--primary-100) !important;
+    background: rgba(95, 55, 43, 0.1);
 }
 
 .spinner-border-sm {
     width: 1rem;
     height: 1rem;
     border-width: 0.15em;
+}
+
+/* Update card styles in customize page */
+.card {
+    background: white;
+    color: var(--text-dark);
+}
+
+.card-header {
+    background: white;
+    border-bottom: 1px solid var(--neutral-200);
+    color: var(--text-dark);
+}
+
+.form-control, .form-select {
+    background: white;
+    color: var(--text-dark);
+    border: 1px solid var(--neutral-300);
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: var(--primary-100);
+    box-shadow: 0 0 0 0.2rem rgba(95, 55, 43, 0.1);
+}
+
+.btn-outline-secondary {
+    border-color: var(--neutral-400);
+    color: var(--text-dark);
+}
+
+.btn-outline-secondary:hover {
+    background: var(--neutral-200);
+    border-color: var(--neutral-500);
+}
+
+.text-primary {
+    color: var(--primary-100) !important;
+}
+
+.text-muted {
+    color: var(--text-muted) !important;
+}
+
+.bg-light {
+    background: var(--neutral-100) !important;
+    color: var(--text-dark) !important;
+}
+
+.bg-primary {
+    background: var(--primary-100) !important;
 }
 </style>

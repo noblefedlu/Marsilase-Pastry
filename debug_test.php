@@ -207,5 +207,35 @@ pre {
     background: transparent;
     border: none;
     font-family: 'Courier New', monospace;
+    color: var(--neutral-700);
+}
+
+.card {
+    background: var(--primary-300);
+    color: white;
+}
+
+.alert-success {
+    background: rgba(160, 90, 44, 0.2);
+    border-color: var(--primary-300);
+    color: white;
+}
+
+.alert-danger {
+    background: rgba(139, 77, 37, 0.2);
+    border-color: var(--primary-400);
+    color: white;
+}
+
+.alert-warning {
+    background: rgba(244, 180, 0, 0.2);
+    border-color: var(--primary-500);
+    color: white;
+}
+
+.alert-info {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: var(--primary-400);
+    color: white;
 }
 </style>

@@ -1,440 +1,454 @@
--- Marsilase Pastry - COMPLETE DATABASE SCHEMA
--- Includes all tables for the main application and enhanced admin system
+-- phpMyAdmin SQL Dump
+-- version 5.2.1
+-- https://www.phpmyadmin.net/
+--
+-- Host: 127.0.0.1
+-- Generation Time: Nov 24, 2025 at 11:45 AM
+-- Server version: 10.4.32-MariaDB
+-- PHP Version: 8.0.30
 
-CREATE DATABASE IF NOT EXISTS marsilase_pastry;
-USE marsilase_pastry;
+SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
+START TRANSACTION;
+SET time_zone = "+00:00";
 
--- Drop tables if they exist (in reverse order due to foreign key constraints)
-DROP TABLE IF EXISTS order_items;
-DROP TABLE IF EXISTS orders;
-DROP TABLE IF EXISTS toppings;
-DROP TABLE IF EXISTS flavors;
-DROP TABLE IF EXISTS cake_sizes;
-DROP TABLE IF EXISTS cakes;
-DROP TABLE IF EXISTS blocked_ips;
-DROP TABLE IF EXISTS failed_login_attempts;
-DROP TABLE IF EXISTS admin_logs;
-DROP TABLE IF EXISTS settings;
-DROP TABLE IF EXISTS banners;
-DROP TABLE IF EXISTS contact_messages;
-DROP TABLE IF EXISTS admins;
 
--- Admins table
-CREATE TABLE admins (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    username VARCHAR(255) UNIQUE NOT NULL,
-    password_hash VARCHAR(255) NOT NULL,
-    full_name VARCHAR(255) NOT NULL,
-    role ENUM('super_admin', 'admin', 'moderator') DEFAULT 'admin',
-    is_active BOOLEAN DEFAULT TRUE,
-    two_factor_enabled BOOLEAN DEFAULT FALSE,
-    two_factor_secret VARCHAR(255),
-    last_login TIMESTAMP NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-);
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!40101 SET NAMES utf8mb4 */;
 
--- Products tables with enhanced columns
-CREATE TABLE cakes (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    name VARCHAR(255) NOT NULL,
-    description TEXT,
-    image_url VARCHAR(500),
-    price DECIMAL(10,2) NOT NULL,
-    color VARCHAR(7) DEFAULT '#C2865A',
-    is_active BOOLEAN DEFAULT TRUE,
-    is_featured BOOLEAN DEFAULT FALSE,
-    category VARCHAR(50) DEFAULT 'general',
-    serves INT DEFAULT 4,
-    preparation_time VARCHAR(50) DEFAULT '2-4 hours',
-    stock_quantity INT DEFAULT 0,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+--
+-- Database: `marsilase_pastry`
+--
+CREATE DATABASE IF NOT EXISTS `marsilase_pastry` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+USE `marsilase_pastry`;
 
--- Cake sizes with price multipliers
-CREATE TABLE cake_sizes (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    size VARCHAR(50) NOT NULL,
-    description VARCHAR(255),
-    price DECIMAL(10,2) NOT NULL,
-    weight VARCHAR(50),
-    serves_min INT DEFAULT 2,
-    serves_max INT DEFAULT 4,
-    is_active BOOLEAN DEFAULT TRUE
-);
+-- --------------------------------------------------------
 
--- Flavors
-CREATE TABLE flavors (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    name VARCHAR(255) NOT NULL,
-    type ENUM('cake', 'ice_cream', 'soft_drink', 'hot_drink') NOT NULL,
-    is_active BOOLEAN DEFAULT TRUE
-);
+--
+-- Table structure for table `admins`
+--
 
--- Toppings
-CREATE TABLE toppings (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    name VARCHAR(255) NOT NULL,
-    price DECIMAL(10,2) DEFAULT 0.00,
-    is_active BOOLEAN DEFAULT TRUE,
-    category ENUM('sauce', 'fruit', 'nut', 'cream', 'decoration') DEFAULT 'decoration'
-);
+CREATE TABLE `admins` (
+  `id` int(11) NOT NULL,
+  `username` varchar(255) NOT NULL,
+  `password_hash` varchar(255) NOT NULL,
+  `full_name` varchar(255) NOT NULL,
+  `role` enum('super_admin','admin','moderator') DEFAULT 'admin',
+  `is_active` tinyint(1) DEFAULT 1,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- Orders table
-CREATE TABLE orders (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    order_number VARCHAR(255) UNIQUE NOT NULL,
-    customer_name VARCHAR(255) NOT NULL,
-    customer_phone VARCHAR(255) NOT NULL,
-    customer_email VARCHAR(255) NOT NULL,
-    delivery_address TEXT NOT NULL,
-    delivery_date DATE NOT NULL,
-    total_amount DECIMAL(10,2) NOT NULL,
-    delivery_time VARCHAR(50) DEFAULT '09:00-12:00',
-    special_instructions TEXT,
-    status ENUM('pending', 'confirmed', 'preparing', 'ready', 'out_for_delivery', 'delivered', 'cancelled') DEFAULT 'pending',
-    payment_status ENUM('pending', 'paid', 'failed', 'refunded', 'cancelled') DEFAULT 'pending',
-    payment_method VARCHAR(50) DEFAULT 'cash',
-    payment_notes TEXT,
-    refund_amount DECIMAL(10,2) DEFAULT 0,
-    refund_reason TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-);
+--
+-- Dumping data for table `admins`
+--
 
--- Order items table
-CREATE TABLE order_items (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    order_id INT NOT NULL,
-    product_type ENUM('cake', 'ice_cream', 'soft_drink', 'hot_drink') NOT NULL,
-    product_id INT NOT NULL,
-    product_name VARCHAR(255) NOT NULL,
-    quantity INT DEFAULT 1,
-    unit_price DECIMAL(10,2) NOT NULL,
-    total_price DECIMAL(10,2) NOT NULL,
-    flavor VARCHAR(255),
-    size VARCHAR(255),
-    special_notes TEXT,
-    FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE
-);
+INSERT INTO `admins` (`id`, `username`, `password_hash`, `full_name`, `role`, `is_active`, `created_at`, `updated_at`) VALUES
+(1, 'admin', '$2y$10$6ZnJLsI/.$J9qG6G8p6p6e6p6e6p6e6p6e6p6e6p6e6p6e6p6e6p6e6p6e', 'System Administrator', 'super_admin', 1, '2025-11-21 14:55:43', '2025-11-21 14:55:43');
 
--- Contact messages table
-CREATE TABLE contact_messages (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    name VARCHAR(255) NOT NULL,
-    email VARCHAR(255) NOT NULL,
-    phone VARCHAR(20),
-    subject VARCHAR(255),
-    message TEXT NOT NULL,
-    status ENUM('unread', 'read', 'replied') DEFAULT 'unread',
-    admin_notes TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-);
+-- --------------------------------------------------------
 
--- Banners table for content management
-CREATE TABLE banners (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    banner_type ENUM('home', 'promo', 'sidebar', 'popup') DEFAULT 'home',
-    image_url VARCHAR(500) NOT NULL,
-    title VARCHAR(255),
-    description TEXT,
-    is_active BOOLEAN DEFAULT TRUE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-);
+--
+-- Table structure for table `cakes`
+--
 
--- Settings table for system configuration
-CREATE TABLE settings (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    setting_key VARCHAR(255) UNIQUE NOT NULL,
-    setting_value TEXT,
-    setting_type ENUM('text', 'number', 'boolean', 'json') DEFAULT 'text',
-    description TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-);
+CREATE TABLE `cakes` (
+  `id` int(11) NOT NULL,
+  `name` varchar(255) NOT NULL,
+  `description` text DEFAULT NULL,
+  `image_url` varchar(500) DEFAULT NULL,
+  `price` decimal(10,2) NOT NULL,
+  `discount_price` decimal(10,2) DEFAULT 0.00,
+  `color` varchar(7) DEFAULT '#C2865A',
+  `is_active` tinyint(1) DEFAULT 1,
+  `is_featured` tinyint(1) DEFAULT 0,
+  `category_id` int(11) DEFAULT NULL,
+  `serves` int(11) DEFAULT 4,
+  `preparation_time` varchar(50) DEFAULT '2-4 hours',
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- Admin activity logs
-CREATE TABLE admin_logs (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    admin_id INT,
-    action VARCHAR(255) NOT NULL,
-    description TEXT,
-    ip_address VARCHAR(45),
-    user_agent TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (admin_id) REFERENCES admins(id) ON DELETE SET NULL
-);
+--
+-- Dumping data for table `cakes`
+--
 
--- Failed login attempts tracking
-CREATE TABLE failed_login_attempts (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    username VARCHAR(255) NOT NULL,
-    ip_address VARCHAR(45) NOT NULL,
-    user_agent TEXT,
-    attempt_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    INDEX idx_ip_time (ip_address, attempt_time),
-    INDEX idx_username_time (username, attempt_time)
-);
+INSERT INTO `cakes` (`id`, `name`, `description`, `image_url`, `price`, `discount_price`, `color`, `is_active`, `is_featured`, `category_id`, `serves`, `preparation_time`, `created_at`, `updated_at`) VALUES
+(1, 'Classic Torta', 'Traditional layered torta with buttercream. Perfect for birthdays and celebrations with elegant design.', './image/Classic Torta.jpg', 1800.00, 1600.00, '#7B3F00', 1, 1, 2, 8, '2-4 hours', '2025-11-21 14:55:43', '2025-11-21 14:55:43'),
+(2, 'Chocolate Torta', 'Rich chocolate torta with ganache. Multiple layers of chocolate cake with chocolate buttercream.', './image/Chocolate Torta.jpg', 2200.00, 0.00, '#654321', 1, 1, 2, 10, '2-4 hours', '2025-11-21 14:55:43', '2025-11-21 14:55:43'),
+(3, 'Fruit Torta', 'Fresh fruit torta with whipped cream. Light sponge cake topped with seasonal fresh fruits.', './image/Fruit Torta.jpg', 2000.00, 1800.00, '#FF69B4', 1, 1, 2, 6, '2-4 hours', '2025-11-21 14:55:43', '2025-11-21 14:55:43'),
+(4, 'Chocolate Mini Cake', 'Rich chocolate mini cake with chocolate ganache. Dense, moist chocolate cake with smooth ganache topping.', './image/Chocolate Cake Slice.jpg', 150.00, 0.00, '#7B3F00', 1, 1, 4, 1, '2-4 hours', '2025-11-21 14:55:43', '2025-11-21 14:55:43'),
+(5, 'Red Velvet Mini Cake', 'Classic red velvet mini cake with cream cheese. Vibrant red cake with tangy cream cheese frosting.', './image/Red Velvet Slice.jpg', 160.00, 140.00, '#DC143C', 1, 1, 4, 1, '2-4 hours', '2025-11-21 14:55:43', '2025-11-21 14:55:43'),
+(6, 'Cheesecake Mini', 'Creamy cheesecake mini with berry compote. Smooth and rich with graham cracker crust and fresh berries.', './image/Cheesecake Slice.jpg', 170.00, 150.00, '#FFB6C1', 1, 1, 4, 1, '2-4 hours', '2025-11-21 14:55:43', '2025-11-21 14:55:43');
 
--- Blocked IPs table
-CREATE TABLE blocked_ips (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    ip_address VARCHAR(45) UNIQUE NOT NULL,
-    reason TEXT,
-    blocked_by INT,
-    blocked_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    is_active BOOLEAN DEFAULT TRUE,
-    FOREIGN KEY (blocked_by) REFERENCES admins(id) ON DELETE SET NULL,
-    INDEX idx_ip_active (ip_address, is_active)
-);
+-- --------------------------------------------------------
 
--- =============================================================================
--- INSERT SAMPLE DATA
--- =============================================================================
+--
+-- Table structure for table `categories`
+--
 
--- Insert default admin (password: admin123)
-INSERT INTO admins (username, password_hash, full_name, role) VALUES 
-('admin', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Administrator', 'super_admin'),
-('manager', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Store Manager', 'admin'),
-('staff', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Store Staff', 'moderator');
+CREATE TABLE `categories` (
+  `id` int(11) NOT NULL,
+  `name` varchar(255) NOT NULL,
+  `description` text DEFAULT NULL,
+  `image_url` varchar(500) DEFAULT NULL,
+  `is_active` tinyint(1) DEFAULT 1,
+  `display_order` int(11) DEFAULT 0,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- Insert cake sizes with enhanced data
-INSERT INTO cake_sizes (size, description, price, weight, serves_min, serves_max) VALUES
-('Small', 'Perfect for 2-4 people', 50.00, '0.5kg', 2, 4),
-('Medium', 'Ideal for 4-6 people', 100.00, '1kg', 4, 6),
-('Large', 'Great for 8-12 people', 180.00, '2kg', 8, 12);
+--
+-- Dumping data for table `categories`
+--
 
--- Insert flavors
-INSERT INTO flavors (name, type) VALUES 
-('Vanilla', 'cake'),
-('Chocolate', 'cake'),
-('Strawberry', 'cake'),
-('Red Velvet', 'cake'),
-('Lemon', 'cake'),
-('Caramel', 'cake'),
-('Coffee', 'cake'),
-('Vanilla', 'ice_cream'),
-('Chocolate', 'ice_cream'),
-('Strawberry', 'ice_cream'),
-('Mint Chocolate', 'ice_cream'),
-('Original', 'soft_drink'),
-('Cola', 'soft_drink'),
-('Orange', 'soft_drink'),
-('Lemon', 'soft_drink'),
-('Regular', 'hot_drink'),
-('Strong', 'hot_drink'),
-('Light', 'hot_drink');
+INSERT INTO `categories` (`id`, `name`, `description`, `image_url`, `is_active`, `display_order`, `created_at`) VALUES
+(1, 'Cookies', 'Delicious homemade cookies baked fresh daily with love and premium ingredients', NULL, 1, 1, '2025-11-21 14:55:43'),
+(2, 'Torta Cake', 'Special torta cakes for celebrations, custom-designed for your special occasions', NULL, 1, 2, '2025-11-21 14:55:43'),
+(3, 'Arabian Sweets', 'Traditional Arabian sweets and desserts crafted with authentic recipes', NULL, 1, 3, '2025-11-21 14:55:43'),
+(4, 'Mini cakes', 'Adorable mini cakes perfect for individual servings or small gatherings', NULL, 1, 4, '2025-11-21 14:55:43');
 
--- Insert toppings with categories
-INSERT INTO toppings (name, price, category) VALUES 
-('Chocolate Sauce', 50.00, 'sauce'),
-('Caramel Drizzle', 45.00, 'sauce'),
-('Fresh Fruits', 80.00, 'fruit'),
-('Whipped Cream', 30.00, 'cream'),
-('Mixed Nuts', 60.00, 'nut'),
-('Colorful Sprinkles', 25.00, 'decoration'),
-('Cookie Crumbles', 40.00, 'decoration'),
-('Edible Flowers', 100.00, 'decoration'),
-('Chocolate Chips', 35.00, 'decoration'),
-('Coconut Flakes', 30.00, 'decoration');
+-- --------------------------------------------------------
 
--- Insert cakes with professional image URLs and stock quantities
-INSERT INTO cakes (name, description, image_url, price, color, is_featured, category, serves, stock_quantity) VALUES 
-('Chocolate Fantasy', 'Rich chocolate cake with creamy chocolate frosting and decadent toppings. Perfect for chocolate lovers and special celebrations.', 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80', 1200.00, '#7B3F00', TRUE, 'chocolate', 8, 15),
-('Vanilla Dream', 'Light vanilla sponge with buttercream frosting and fresh fruit decorations. A classic choice for any occasion.', 'https://images.unsplash.com/photo-1587664278273-8c2c3c8c44f4?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80', 1100.00, '#F5F5DC', TRUE, 'vanilla', 6, 12),
-('Red Velvet Delight', 'Classic red velvet with cream cheese frosting and elegant decorations. Perfect for weddings and anniversaries.', 'https://images.unsplash.com/photo-1563729784474-d77dbb933a9e?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80', 1350.00, '#DC143C', TRUE, 'special', 10, 8),
-('Caramel Crunch', 'Moist caramel cake with crunchy toppings and caramel drizzle. A sweet treat for caramel enthusiasts.', 'https://images.unsplash.com/photo-1586985289688-ca3cf47d3e6e?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80', 1250.00, '#D2691E', FALSE, 'caramel', 6, 10),
-('Lemon Zest', 'Tangy lemon cake with citrus frosting and lemon zest. Refreshing and perfect for summer occasions.', 'https://images.unsplash.com/photo-1576618148400-f54bed99c9a3?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80', 1150.00, '#FFD700', FALSE, 'fruit', 6, 14),
-('Strawberry Bliss', 'Fresh strawberry cake with cream and real strawberry pieces. Bursting with fruity flavors.', 'https://images.unsplash.com/photo-1464305795204-6f5bbfc7fb81?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80', 1300.00, '#FF69B4', TRUE, 'fruit', 8, 9),
-('Blueberry Cheesecake', 'Creamy cheesecake with blueberry compote and graham crust. Rich and indulgent dessert experience.', 'https://images.unsplash.com/photo-1535254973040-607b474cb50d?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80', 1400.00, '#4B0082', TRUE, 'special', 8, 6),
-('Coffee Mocha', 'Rich coffee-flavored cake with mocha buttercream. The perfect blend for coffee lovers.', 'https://images.unsplash.com/photo-1576402187878-974f70c890a5?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80', 1280.00, '#654321', FALSE, 'coffee', 6, 11),
-('Raspberry White Chocolate', 'White chocolate cake with raspberry filling and cream. Elegant and sophisticated flavor combination.', 'https://images.unsplash.com/photo-1519915028121-7d8e1be4d1b1?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80', 1450.00, '#FFB6C1', TRUE, 'special', 8, 7),
-('Tropical Paradise', 'Coconut and pineapple cake with tropical fruit compote. A taste of the tropics in every bite.', 'https://images.unsplash.com/photo-1488477181946-6428a0291777?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80', 1320.00, '#32CD32', FALSE, 'fruit', 8, 13),
-('Black Forest', 'Classic German chocolate cake with cherries and whipped cream. Timeless favorite for all ages.', 'https://images.unsplash.com/photo-1571115764595-644a1f56a55c?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80', 1380.00, '#2F4F4F', TRUE, 'chocolate', 10, 10),
-('Matcha Green Tea', 'Japanese-inspired matcha green tea cake with white chocolate. Unique and refreshing flavor profile.', 'https://images.unsplash.com/photo-1562448079-2d36c1e63c59?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80', 1420.00, '#228B22', FALSE, 'special', 6, 5);
+--
+-- Table structure for table `orders`
+--
 
--- Insert sample orders with realistic data
-INSERT INTO orders (order_number, customer_name, customer_phone, customer_email, delivery_address, delivery_date, total_amount, status, payment_status) VALUES
-('ORD-20231215-ABC123', 'Alice Johnson', '+251-911-223344', 'alice@example.com', 'Bole Road, Addis Ababa', '2023-12-20', 2450.00, 'delivered', 'paid'),
-('ORD-20231216-DEF456', 'Michael Bekele', '+251-922-334455', 'michael@example.com', 'Kirkos Subcity, Addis Ababa', '2023-12-22', 1380.00, 'preparing', 'paid'),
-('ORD-20231217-GHI789', 'Sarah Tesfaye', '+251-933-445566', 'sarah@example.com', 'Megenagna, Addis Ababa', '2023-12-18', 3200.00, 'ready', 'paid'),
-('ORD-20231218-JKL012', 'David Hailu', '+251-944-556677', 'david@example.com', 'Cazanchise, Addis Ababa', '2023-12-25', 1150.00, 'pending', 'pending'),
-('ORD-20231219-MNO345', 'Elena Girma', '+251-955-667788', 'elena@example.com', 'Bole Michael, Addis Ababa', '2023-12-21', 2760.00, 'out_for_delivery', 'paid');
+CREATE TABLE `orders` (
+  `id` int(11) NOT NULL,
+  `order_number` varchar(255) NOT NULL,
+  `customer_name` varchar(255) NOT NULL,
+  `customer_phone` varchar(255) NOT NULL,
+  `delivery_address` text NOT NULL,
+  `delivery_date` date NOT NULL,
+  `delivery_time` varchar(50) DEFAULT '09:00-12:00',
+  `special_instructions` text DEFAULT NULL,
+  `total_amount` decimal(10,2) NOT NULL,
+  `status` enum('pending','confirmed','preparing','ready','out_for_delivery','delivered','cancelled') DEFAULT 'pending',
+  `payment_status` enum('pending','paid','failed') DEFAULT 'pending',
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- Insert order items
-INSERT INTO order_items (order_id, product_type, product_id, product_name, quantity, unit_price, total_price, flavor, size) VALUES
-(1, 'cake', 1, 'Chocolate Fantasy', 2, 1200.00, 2400.00, 'Chocolate', 'Medium'),
-(1, 'cake', 3, 'Red Velvet Delight', 1, 1350.00, 1350.00, 'Red Velvet', 'Small'),
-(2, 'cake', 12, 'Black Forest', 1, 1380.00, 1380.00, 'Chocolate', 'Medium'),
-(3, 'cake', 7, 'Blueberry Cheesecake', 2, 1400.00, 2800.00, 'Vanilla', 'Large'),
-(3, 'cake', 2, 'Vanilla Dream', 1, 1100.00, 1100.00, 'Vanilla', 'Small'),
-(4, 'cake', 5, 'Lemon Zest', 1, 1150.00, 1150.00, 'Lemon', 'Medium'),
-(5, 'cake', 9, 'Raspberry White Chocolate', 2, 1450.00, 2900.00, 'Vanilla', 'Medium');
+--
+-- Dumping data for table `orders`
+--
 
--- Insert settings
-INSERT INTO settings (setting_key, setting_value, setting_type, description) VALUES
-('site_name', 'Marsilase Pastry', 'text', 'Website name'),
-('site_email', 'info@marsilasepastry.com', 'text', 'Contact email'),
-('site_phone', '+251-911-223344', 'text', 'Contact phone'),
-('site_address', 'Bole Road, Addis Ababa, Ethiopia', 'text', 'Business address'),
-('currency', 'ETB', 'text', 'Default currency'),
-('timezone', 'Africa/Addis_Ababa', 'text', 'Default timezone'),
-('business_hours', '8:00 AM - 10:00 PM', 'text', 'Business operating hours'),
-('delivery_fee', '50.00', 'number', 'Default delivery fee'),
-('min_order_amount', '200.00', 'number', 'Minimum order amount for delivery'),
-('delivery_radius', '20', 'number', 'Delivery radius in kilometers'),
-('preparation_time', '45', 'number', 'Average preparation time in minutes'),
-('admin_session_timeout', '60', 'number', 'Admin session timeout in minutes'),
-('max_login_attempts', '5', 'number', 'Maximum login attempts before lockout'),
-('password_min_length', '8', 'number', 'Minimum password length for admin accounts'),
-('low_stock_threshold', '10', 'number', 'Low stock alert threshold'),
-('meta_title', 'Marsilase Pastry - Premium Cakes & Desserts in Addis Ababa', 'text', 'Default meta title'),
-('meta_description', 'Order delicious custom cakes, pastries and desserts in Addis Ababa. Fresh ingredients, beautiful designs, perfect for every occasion.', 'text', 'Default meta description'),
-('meta_keywords', 'cakes, pastries, desserts, Addis Ababa, birthday cakes, wedding cakes, custom cakes, Ethiopian bakery', 'text', 'Default meta keywords'),
-('role_permissions_super_admin', '["dashboard","orders","products","customers","messages","payments","analytics","content","settings","admin_management","security"]', 'json', 'Super Admin permissions'),
-('role_permissions_admin', '["dashboard","orders","products","customers","messages","payments","analytics","content"]', 'json', 'Admin permissions'),
-('role_permissions_moderator', '["dashboard","orders","products","customers","messages","analytics"]', 'json', 'Moderator permissions');
+INSERT INTO `orders` (`id`, `order_number`, `customer_name`, `customer_phone`, `delivery_address`, `delivery_date`, `delivery_time`, `special_instructions`, `total_amount`, `status`, `payment_status`, `created_at`, `updated_at`) VALUES
+(11, 'ORD-20251124114154-202303', 'Noble Fedlu', '0967318674', 'Addis Ababa\r\nNot Available', '2025-11-25', '09:00-12:00', '', 250.00, 'pending', 'pending', '2025-11-24 10:41:54', '2025-11-24 10:41:54');
 
--- Insert banners
-INSERT INTO banners (banner_type, image_url, title, description, is_active) VALUES
-('home', 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80', 'Premium Custom Cakes', 'Order beautiful custom cakes for any occasion. Fresh ingredients, perfect designs.', TRUE),
-('home', 'https://images.unsplash.com/photo-1565958011703-44f9829ba187?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80', 'Fresh Daily Pastries', 'Freshly baked pastries made with love and the finest ingredients.', TRUE),
-('promo', 'https://images.unsplash.com/photo-1563729784474-d77dbb933a9e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80', 'Special Wedding Offer', 'Get 15% off on wedding cakes ordered this month!', TRUE),
-('sidebar', 'https://images.unsplash.com/photo-1576402187878-974f70c890a5?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80', 'New Coffee Flavors', 'Try our new coffee-infused cake collection', TRUE);
+-- --------------------------------------------------------
 
--- Insert contact messages
-INSERT INTO contact_messages (name, email, phone, subject, message, status) VALUES
-('John Smith', 'john@example.com', '+251-911-112233', 'Wedding Cake Inquiry', 'Hello, I would like to inquire about a wedding cake for 80 people for my wedding next month. What are your available designs and flavors?', 'read'),
-('Sarah Johnson', 'sarah@example.com', '+251-922-223344', 'Birthday Cake Order', 'I need a birthday cake for my daughter''s 8th birthday. She loves unicorns and the color pink. Can you create something special?', 'replied'),
-('Michael Brown', 'michael@example.com', '+251-933-334455', 'Corporate Event Catering', 'We are planning a corporate event for 150 people and need dessert catering. Can you provide a quote for assorted pastries and cakes?', 'unread'),
-('Elena Garcia', 'elena@example.com', '+251-944-445566', 'Allergy Information', 'Do you have gluten-free or vegan cake options? I have dietary restrictions but would love to order a cake for an anniversary.', 'read'),
-('Thomas Wilson', 'thomas@example.com', '+251-955-556677', 'Bulk Order Discount', 'I need to order 10 cakes for a community event. Do you offer bulk order discounts?', 'unread');
+--
+-- Table structure for table `order_items`
+--
 
--- Insert admin activity logs
-INSERT INTO admin_logs (admin_id, action, description, ip_address) VALUES
-(1, 'Login', 'Admin logged into the system', '192.168.1.100'),
-(1, 'Order Update', 'Updated order status to delivered for ORD-20231215-ABC123', '192.168.1.100'),
-(1, 'Product Update', 'Updated stock quantity for Chocolate Fantasy', '192.168.1.100'),
-(2, 'Login', 'Manager logged into the system', '192.168.1.101'),
-(2, 'Message Reply', 'Replied to customer inquiry from Sarah Johnson', '192.168.1.101'),
-(3, 'Login', 'Staff member logged into the system', '192.168.1.102'),
-(3, 'Order Create', 'Created new order ORD-20231219-MNO345', '192.168.1.102');
+CREATE TABLE `order_items` (
+  `id` int(11) NOT NULL,
+  `order_id` int(11) DEFAULT NULL,
+  `product_type` enum('cake','product') NOT NULL,
+  `product_id` int(11) NOT NULL,
+  `product_name` varchar(255) NOT NULL,
+  `flavor` varchar(255) DEFAULT NULL,
+  `size` varchar(255) DEFAULT NULL,
+  `quantity` int(11) DEFAULT 1,
+  `unit_price` decimal(10,2) NOT NULL,
+  `total_price` decimal(10,2) NOT NULL,
+  `special_notes` text DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- Insert sample failed login attempts (for security monitoring)
-INSERT INTO failed_login_attempts (username, ip_address, user_agent) VALUES
-('admin', '192.168.1.200', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'),
-('unknown', '192.168.1.201', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36'),
-('test', '192.168.1.202', 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36');
+--
+-- Dumping data for table `order_items`
+--
 
--- =============================================================================
--- CREATE INDEXES FOR PERFORMANCE
--- =============================================================================
+INSERT INTO `order_items` (`id`, `order_id`, `product_type`, `product_id`, `product_name`, `flavor`, `size`, `quantity`, `unit_price`, `total_price`, `special_notes`) VALUES
+(15, 11, 'product', 45, 'Baklava', '0', 'Standard', 1, 200.00, 200.00, '');
 
--- Orders indexes
-CREATE INDEX idx_orders_status ON orders(status);
-CREATE INDEX idx_orders_created_at ON orders(created_at);
-CREATE INDEX idx_orders_payment_status ON orders(payment_status, created_at);
-CREATE INDEX idx_orders_customer_phone ON orders(customer_phone);
+-- --------------------------------------------------------
 
--- Order items indexes
-CREATE INDEX idx_order_items_order_id ON order_items(order_id);
-CREATE INDEX idx_order_items_product_type ON order_items(product_type, product_id);
+--
+-- Table structure for table `owners`
+--
 
--- Cakes indexes
-CREATE INDEX idx_cakes_category_active ON cakes(category, is_active);
-CREATE INDEX idx_cakes_featured ON cakes(is_featured, is_active);
-CREATE INDEX idx_cakes_stock ON cakes(stock_quantity, is_active);
+CREATE TABLE `owners` (
+  `id` int(11) NOT NULL,
+  `username` varchar(255) NOT NULL,
+  `password_hash` varchar(255) NOT NULL,
+  `full_name` varchar(255) NOT NULL,
+  `email` varchar(255) NOT NULL,
+  `phone` varchar(50) DEFAULT NULL,
+  `profile_image` varchar(500) DEFAULT NULL,
+  `security_level` enum('full','limited','financial_only') DEFAULT 'full',
+  `two_factor_enabled` tinyint(1) DEFAULT 0,
+  `two_factor_secret` varchar(255) DEFAULT NULL,
+  `last_login` timestamp NULL DEFAULT NULL,
+  `login_attempts` int(11) DEFAULT 0,
+  `account_locked_until` timestamp NULL DEFAULT NULL,
+  `is_active` tinyint(1) DEFAULT 1,
+  `created_by` int(11) DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- Contact messages indexes
-CREATE INDEX idx_contact_messages_status ON contact_messages(status, created_at);
-CREATE INDEX idx_contact_messages_email ON contact_messages(email);
+--
+-- Dumping data for table `owners`
+--
 
--- Banners indexes
-CREATE INDEX idx_banners_type_active ON banners(banner_type, is_active);
+INSERT INTO `owners` (`id`, `username`, `password_hash`, `full_name`, `email`, `phone`, `profile_image`, `security_level`, `two_factor_enabled`, `two_factor_secret`, `last_login`, `login_attempts`, `account_locked_until`, `is_active`, `created_by`, `created_at`, `updated_at`) VALUES
+(1, 'owner', '$2y$10$Gr5uDalB9V.Yfz5jIFYRseG6WB3dIStcvr3BRszUqNYXYbghhzKrG', 'Marsilase Owner', 'owner@marsilase.com', NULL, NULL, 'full', 0, NULL, '2025-11-22 12:34:36', 0, NULL, 1, NULL, '2025-11-21 14:55:43', '2025-11-22 12:34:36'),
+(2, 'backup_owner', '$2y$10$Gr5uDalB9V.Yfz5jIFYRseG6WB3dIStcvr3BRszUqNYXYbghhzKrG', 'Backup Owner', 'backup@marsilase.com', NULL, NULL, 'full', 0, NULL, '2025-11-22 11:36:47', 0, NULL, 1, NULL, '2025-11-21 14:55:43', '2025-11-22 11:36:47'),
+(3, 'finance_owner', '$2y$10$Gr5uDalB9V.Yfz5jIFYRseG6WB3dIStcvr3BRszUqNYXYbghhzKrG', 'Finance Manager', 'finance@marsilase.com', NULL, NULL, 'financial_only', 0, NULL, '2025-11-22 12:05:45', 0, NULL, 1, NULL, '2025-11-21 14:55:43', '2025-11-22 12:05:45');
 
--- Admin logs indexes
-CREATE INDEX idx_admin_logs_admin_time ON admin_logs(admin_id, created_at);
-CREATE INDEX idx_admin_logs_action_time ON admin_logs(action, created_at);
+-- --------------------------------------------------------
 
--- Settings indexes
-CREATE INDEX idx_settings_key ON settings(setting_key);
+--
+-- Table structure for table `owner_permissions`
+--
 
--- =============================================================================
--- DISPLAY DATABASE SUMMARY
--- =============================================================================
+CREATE TABLE `owner_permissions` (
+  `id` int(11) NOT NULL,
+  `owner_id` int(11) DEFAULT NULL,
+  `permission_key` varchar(255) NOT NULL,
+  `permission_value` tinyint(1) DEFAULT 1,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
-SELECT '=== MARSILASE PASTRY DATABASE CREATED SUCCESSFULLY ===' AS message;
+--
+-- Dumping data for table `owner_permissions`
+--
 
--- Table counts summary
-SELECT 
-    'Table Counts Summary' AS section,
-    'Admins' AS table_name,
-    COUNT(*) AS record_count
-FROM admins
-UNION ALL SELECT 'Table Counts Summary', 'Cakes', COUNT(*) FROM cakes
-UNION ALL SELECT 'Table Counts Summary', 'Orders', COUNT(*) FROM orders
-UNION ALL SELECT 'Table Counts Summary', 'Order Items', COUNT(*) FROM order_items
-UNION ALL SELECT 'Table Counts Summary', 'Contact Messages', COUNT(*) FROM contact_messages
-UNION ALL SELECT 'Table Counts Summary', 'Settings', COUNT(*) FROM settings
-UNION ALL SELECT 'Table Counts Summary', 'Banners', COUNT(*) FROM banners;
+INSERT INTO `owner_permissions` (`id`, `owner_id`, `permission_key`, `permission_value`, `created_at`) VALUES
+(1, 1, 'manage_products', 1, '2025-11-21 14:55:43'),
+(2, 1, 'manage_admins', 1, '2025-11-21 14:55:43'),
+(3, 1, 'view_reports', 1, '2025-11-21 14:55:43'),
+(4, 1, 'manage_orders', 1, '2025-11-21 14:55:43'),
+(5, 1, 'system_settings', 1, '2025-11-21 14:55:43'),
+(6, 1, 'financial_reports', 1, '2025-11-21 14:55:43'),
+(7, 2, 'manage_products', 0, '2025-11-21 14:55:43'),
+(8, 2, 'view_reports', 0, '2025-11-21 14:55:43'),
+(9, 2, 'manage_orders', 0, '2025-11-21 14:55:43'),
+(10, 2, 'financial_reports', 0, '2025-11-21 14:55:43'),
+(11, 3, 'view_reports', 0, '2025-11-21 14:55:43'),
+(12, 3, 'financial_reports', 0, '2025-11-21 14:55:43'),
+(13, 3, 'manage_products', 0, '2025-11-22 11:12:21'),
+(14, 3, 'view_reports', 0, '2025-11-22 11:12:21'),
+(15, 3, 'financial_reports', 0, '2025-11-22 11:12:21'),
+(16, 3, 'view_reports', 0, '2025-11-22 11:12:30'),
+(17, 3, 'financial_reports', 0, '2025-11-22 11:12:30'),
+(18, 3, 'view_reports', 0, '2025-11-22 11:14:29'),
+(19, 3, 'system_settings', 0, '2025-11-22 11:14:29'),
+(20, 3, 'financial_reports', 0, '2025-11-22 11:14:29'),
+(21, 3, 'manage_admins', 0, '2025-11-22 11:14:43'),
+(22, 3, 'view_reports', 0, '2025-11-22 11:14:43'),
+(23, 3, 'system_settings', 0, '2025-11-22 11:14:43'),
+(24, 3, 'financial_reports', 0, '2025-11-22 11:14:43'),
+(25, 3, 'view_reports', 1, '2025-11-22 11:15:57'),
+(26, 3, 'financial_reports', 1, '2025-11-22 11:15:57'),
+(27, 2, 'view_reports', 0, '2025-11-22 11:16:59'),
+(28, 2, 'financial_reports', 0, '2025-11-22 11:16:59'),
+(38, 2, 'manage_admins', 1, '2025-11-22 11:36:34'),
+(39, 2, 'view_reports', 1, '2025-11-22 11:36:34'),
+(40, 2, 'manage_orders', 1, '2025-11-22 11:36:34'),
+(41, 2, 'financial_reports', 1, '2025-11-22 11:36:34');
 
--- Business overview
-SELECT 
-    'Business Overview' AS section,
-    'Total Revenue (ETB)' AS metric,
-    SUM(total_amount) AS value
-FROM orders 
-WHERE payment_status = 'paid'
-UNION ALL SELECT 
-    'Business Overview',
-    'Pending Orders',
-    COUNT(*)
-FROM orders 
-WHERE status = 'pending'
-UNION ALL SELECT 
-    'Business Overview',
-    'Featured Products',
-    COUNT(*)
-FROM cakes 
-WHERE is_featured = TRUE AND is_active = TRUE
-UNION ALL SELECT 
-    'Business Overview',
-    'Low Stock Items',
-    COUNT(*)
-FROM cakes 
-WHERE stock_quantity <= 10 AND stock_quantity > 0 AND is_active = TRUE
-UNION ALL SELECT 
-    'Business Overview',
-    'Unread Messages',
-    COUNT(*)
-FROM contact_messages 
-WHERE status = 'unread';
+-- --------------------------------------------------------
 
--- Product categories summary
-SELECT 
-    'Product Categories' AS section,
-    category,
-    COUNT(*) AS product_count,
-    SUM(stock_quantity) AS total_stock
-FROM cakes 
-WHERE is_active = TRUE
-GROUP BY category
-ORDER BY product_count DESC;
+--
+-- Table structure for table `products`
+--
 
--- Recent orders summary
-SELECT 
-    'Recent Orders' AS section,
-    order_number,
-    customer_name,
-    total_amount,
-    status,
-    DATE(created_at) AS order_date
-FROM orders 
-ORDER BY created_at DESC 
-LIMIT 5;
+CREATE TABLE `products` (
+  `id` int(11) NOT NULL,
+  `name` varchar(255) NOT NULL,
+  `description` text DEFAULT NULL,
+  `price` decimal(10,2) NOT NULL,
+  `category_id` int(11) DEFAULT NULL,
+  `category` varchar(50) NOT NULL DEFAULT 'Cookies',
+  `image_path` varchar(500) DEFAULT NULL,
+  `is_active` tinyint(1) DEFAULT 1,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
-SELECT '=== DATABASE SETUP COMPLETE ===' AS final_message;
-SELECT 'Admin Login: username="admin", password="admin123"' AS login_info;
-SELECT 'Access your admin panel at: /admin/login.php' AS admin_url;
+--
+-- Dumping data for table `products`
+--
+
+INSERT INTO `products` (`id`, `name`, `description`, `price`, `category_id`, `category`, `image_path`, `is_active`, `created_at`, `updated_at`) VALUES
+(20, 'Brownie Minis', 'Rich chocolate brownies, soft-center, fudgy.', 75.00, 4, 'Mini cakes', 'uploads/products/6920871b66269_Brownie Minis.jpg', 1, '2025-11-21 15:36:59', '2025-11-21 15:36:59'),
+(21, 'Soft Mini Cake', 'Fluffy mini butter cakes with light glaze.', 76.00, 4, '0', 'uploads/products/692089c197da0_Soft cakes.jpg', 1, '2025-11-21 15:48:17', '2025-11-21 16:19:29'),
+(22, 'Milk Cake Minis', 'Mini tres leches-style cakes soaked in sweet milk.', 80.00, 4, 'Mini cakes', 'uploads/products/69208a3788730_Milk Cake Minis.jpg', 1, '2025-11-21 15:50:15', '2025-11-21 15:50:15'),
+(23, 'Opera Mini Cake', 'Thin coffee-soaked layers with chocolate ganache and buttercream.', 75.00, 4, 'Mini cakes', 'uploads/products/69208ab8c68e7_Opera Mini Cake.jpg', 1, '2025-11-21 15:52:24', '2025-11-21 15:52:24'),
+(25, 'English Mini Cake', 'Classic butter cakes with dried fruits or vanilla notes.', 90.00, 4, '0', 'uploads/products/69208cf88f33d_English Mini Cake.jpg', 1, '2025-11-21 16:02:00', '2025-11-21 16:18:57'),
+(26, 'Tiramisu Minis', 'Coffee-soaked mini sponge layered with mascarpone cream.', 70.00, 4, 'Mini cakes', 'uploads/products/692422ac05783_Tiramisu Minis.jpg', 1, '2025-11-24 09:17:32', '2025-11-24 09:17:32'),
+(27, 'Boxegna ( Cream Puffs )', 'Light choux pastry filled with smooth vanilla cream and topped with a light dusting of sugar or chocolate drizzle. Soft inside, slightly crisp outside, perfect for bite-size desserts.', 80.00, 4, 'Mini cakes', 'uploads/products/6924241ca8fc3_Boxegna.jpg', 1, '2025-11-24 09:23:40', '2025-11-24 09:23:40'),
+(28, 'Chocolate Cake', 'Rich chocolate sponge with smooth frosting.', 80.00, 4, 'Mini cakes', 'uploads/products/6924259e6d1a5_Chocolate Mini Cake.jpg', 1, '2025-11-24 09:30:06', '2025-11-24 09:30:06'),
+(29, 'Red Velvet', 'Soft cocoa-red cake with cream cheese frosting.', 75.00, 4, 'Mini cakes', 'uploads/products/6924261631e61_Red Velvet Mini.jpg', 1, '2025-11-24 09:32:06', '2025-11-24 09:32:06'),
+(31, 'Mousse Cake', 'Light, creamy mousse-based mini desserts.', 80.00, 4, 'Mini cakes', 'uploads/products/69242729cf4a1_Mousse cake.jpg', 1, '2025-11-24 09:36:41', '2025-11-24 09:36:41'),
+(32, 'Chocolate Cake', 'Smooth cream-cheese filling over a biscuit base.', 85.00, 4, 'Mini cakes', 'uploads/products/692427e06a32d_Cheesecake Slice.jpg', 1, '2025-11-24 09:39:44', '2025-11-24 09:39:44'),
+(33, 'Donuts', 'Soft donuts with glaze or chocolate topping.', 70.00, 4, '0', 'uploads/products/692428614acfd_Donut.jpg', 1, '2025-11-24 09:41:53', '2025-11-24 09:42:16'),
+(34, 'Muffin', 'Moist mini muffins—vanilla, chocolate, or blueberry.', 70.00, 4, 'Mini cakes', 'uploads/products/692428d48a1be_Muffin.jpg', 1, '2025-11-24 09:43:48', '2025-11-24 09:43:48'),
+(35, 'Birthday Cake', 'Fluffy layered cakes with cream, sprinkles, or custom designs.', 3400.00, 2, 'Torta Cake', 'uploads/products/6924295a52c7f_Birthday Cake.jpg', 1, '2025-11-24 09:46:02', '2025-11-24 09:46:02'),
+(36, 'Fondant Cake', 'Smooth fondant-covered celebration cakes with decorations.', 4000.00, 2, '0', 'uploads/products/69242a1ea8a3d_Fondant Cake.jpg', 1, '2025-11-24 09:49:18', '2025-11-24 09:54:38'),
+(37, 'Wedding Cake', 'Tiered cakes decorated with elegant themes.', 15000.00, 2, '0', 'uploads/products/69242a9420169_Wedding Cake.jpg', 1, '2025-11-24 09:51:16', '2025-11-24 09:54:20'),
+(38, 'Bridal Shower Cake', 'Soft pastel-color designs for bridal parties.', 4500.00, 2, 'Torta Cake', 'uploads/products/69242b41ee491_Bridal Shower Cake.jpg', 1, '2025-11-24 09:54:09', '2025-11-24 09:54:09'),
+(39, 'Baby Shower Cake', 'Cute baby-theme cakes in blue/pink.', 5000.00, 2, 'Torta Cake', 'uploads/products/69242c6cee343_Baby Shower Cake.jpg', 1, '2025-11-24 09:59:08', '2025-11-24 09:59:08'),
+(40, 'Anniversary Cake', 'Romantic cakes with minimal or luxury decorations.', 5800.00, 2, 'Torta Cake', 'uploads/products/69242cca1ab2e_Anniversary Cake.jpg', 1, '2025-11-24 10:00:42', '2025-11-24 10:00:42'),
+(41, 'Difo', 'Classic layered Ethiopian-style special event difo.', 1200.00, 2, '0', 'uploads/products/69242e1b709d2_Torta Difo.jpeg', 1, '2025-11-24 10:06:19', '2025-11-24 10:26:00'),
+(42, 'Panettone Cake', 'Soft sweet bread with dried fruits.', 2500.00, 2, 'Torta Cake', 'uploads/products/69242f1591512_Panettone.jpg', 1, '2025-11-24 10:10:29', '2025-11-24 10:10:29'),
+(43, 'Kunafa', 'Shredded pastry with cheese or cream soaked in syrup.', 280.00, 3, 'Arabian Sweets', 'uploads/products/69243001346a3_Kunafa.jpg', 1, '2025-11-24 10:14:25', '2025-11-24 10:14:25'),
+(44, 'Basbousa', 'Moist semolina cake with coconut and syrup.', 200.00, 3, 'Arabian Sweets', 'uploads/products/69243237be233_Basbousa.jpg', 1, '2025-11-24 10:23:51', '2025-11-24 10:23:51'),
+(45, 'Baklava', 'Crispy filo layers with nuts and honey syrup.', 200.00, 3, '0', 'uploads/products/69243272bc3b2_Baklava.jpg', 1, '2025-11-24 10:24:50', '2025-11-24 10:38:40');
+
+--
+-- Indexes for dumped tables
+--
+
+--
+-- Indexes for table `admins`
+--
+ALTER TABLE `admins`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `username` (`username`);
+
+--
+-- Indexes for table `cakes`
+--
+ALTER TABLE `cakes`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `category_id` (`category_id`);
+
+--
+-- Indexes for table `categories`
+--
+ALTER TABLE `categories`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `name` (`name`);
+
+--
+-- Indexes for table `orders`
+--
+ALTER TABLE `orders`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `order_number` (`order_number`);
+
+--
+-- Indexes for table `order_items`
+--
+ALTER TABLE `order_items`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `order_id` (`order_id`);
+
+--
+-- Indexes for table `owners`
+--
+ALTER TABLE `owners`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `username` (`username`),
+  ADD UNIQUE KEY `email` (`email`),
+  ADD KEY `created_by` (`created_by`);
+
+--
+-- Indexes for table `owner_permissions`
+--
+ALTER TABLE `owner_permissions`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `owner_id` (`owner_id`);
+
+--
+-- Indexes for table `products`
+--
+ALTER TABLE `products`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `category_id` (`category_id`);
+
+--
+-- AUTO_INCREMENT for dumped tables
+--
+
+--
+-- AUTO_INCREMENT for table `admins`
+--
+ALTER TABLE `admins`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+
+--
+-- AUTO_INCREMENT for table `cakes`
+--
+ALTER TABLE `cakes`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+
+--
+-- AUTO_INCREMENT for table `categories`
+--
+ALTER TABLE `categories`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+
+--
+-- AUTO_INCREMENT for table `orders`
+--
+ALTER TABLE `orders`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+
+--
+-- AUTO_INCREMENT for table `order_items`
+--
+ALTER TABLE `order_items`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
+
+--
+-- AUTO_INCREMENT for table `owners`
+--
+ALTER TABLE `owners`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+
+--
+-- AUTO_INCREMENT for table `owner_permissions`
+--
+ALTER TABLE `owner_permissions`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=44;
+
+--
+-- AUTO_INCREMENT for table `products`
+--
+ALTER TABLE `products`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=46;
+
+--
+-- Constraints for dumped tables
+--
+
+--
+-- Constraints for table `cakes`
+--
+ALTER TABLE `cakes`
+  ADD CONSTRAINT `cakes_ibfk_1` FOREIGN KEY (`category_id`) REFERENCES `categories` (`id`);
+
+--
+-- Constraints for table `order_items`
+--
+ALTER TABLE `order_items`
+  ADD CONSTRAINT `order_items_ibfk_1` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `owners`
+--
+ALTER TABLE `owners`
+  ADD CONSTRAINT `owners_ibfk_1` FOREIGN KEY (`created_by`) REFERENCES `owners` (`id`);
+
+--
+-- Constraints for table `owner_permissions`
+--
+ALTER TABLE `owner_permissions`
+  ADD CONSTRAINT `owner_permissions_ibfk_1` FOREIGN KEY (`owner_id`) REFERENCES `owners` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `products`
+--
+ALTER TABLE `products`
+  ADD CONSTRAINT `products_ibfk_1` FOREIGN KEY (`category_id`) REFERENCES `categories` (`id`);
+COMMIT;
+
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;

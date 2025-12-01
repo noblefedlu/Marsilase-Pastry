@@ -1,5 +1,4 @@
-[file name]: test_orders.php
-[file content begin]
+
 <?php
 include 'config.php';
 
@@ -286,7 +285,7 @@ if (!empty($order_number)) {
     left: -50%;
     width: 100%;
     height: 3px;
-    background: var(--neutral-300);
+    background: var(--primary-400);
     z-index: 1;
 }
 
@@ -295,27 +294,27 @@ if (!empty($order_number)) {
 }
 
 .status-step.active::before {
-    background: var(--primary-500);
+    background: var(--primary-500); /* Honey Gold */
 }
 
 .step-icon {
     width: 60px;
     height: 60px;
     border-radius: 50%;
-    background: var(--neutral-300);
+    background: var(--primary-400);
     display: flex;
     align-items: center;
     justify-content: center;
     margin: 0 auto 1rem;
     font-size: 1.5rem;
-    color: var(--neutral-600);
+    color: white;
     position: relative;
     z-index: 2;
     transition: var(--transition-base);
 }
 
 .status-step.active .step-icon {
-    background: var(--primary-500);
+    background: var(--primary-500); /* Honey Gold */
     color: white;
     transform: scale(1.1);
 }
@@ -323,20 +322,61 @@ if (!empty($order_number)) {
 .step-label {
     font-weight: 600;
     margin-bottom: 0.25rem;
+    color: white;
 }
 
 .status-step.active .step-label {
-    color: var(--primary-600);
+    color: var(--primary-500); /* Honey Gold */
 }
 
 .table th {
     border-bottom: 2px solid var(--primary-500);
     font-weight: 600;
+    background: var(--primary-400);
+    color: white;
 }
 
 .table td {
-    border-bottom: 1px solid var(--neutral-300);
+    border-bottom: 1px solid var(--primary-400);
     padding: 1rem 0.75rem;
+    background: var(--primary-300);
+    color: white;
+}
+
+.table-hover tbody tr:hover {
+    background-color: var(--primary-400);
+}
+
+.card {
+    background: var(--primary-300);
+    color: white;
+}
+
+.card-header {
+    background: var(--primary-400);
+    color: white;
+    border-bottom: 1px solid var(--primary-500);
+}
+
+.badge {
+    background: var(--primary-500) !important;
+}
+
+.alert-info {
+    background: rgba(244, 180, 0, 0.2);
+    border-color: var(--primary-500);
+    color: white;
+}
+
+.alert-success {
+    background: rgba(160, 90, 44, 0.2);
+    border-color: var(--primary-300);
+    color: white;
+}
+
+.alert-danger {
+    background: rgba(139, 77, 37, 0.2);
+    border-color: var(--primary-400);
+    color: white;
 }
 </style>
-[file content end]
